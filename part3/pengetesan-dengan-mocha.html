@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+    <title>belajar pengetesan otomatis dengan mocha framework</title>
+    <link rel="stylesheet" href="../requirements/mocha/mocha.min.css"/>
+    <script src="../requirements/mocha/mocha.min.js"></script>
+    <script src="../requirements/chai/chai.min.js"></script>
+    <script src="../requirements/chai/chai-as-promised.min.js"></script>
+    <script>
+      mocha.setup('bdd'); // minimal setup
+      let assert = chai.assert;
+      // chai.should();
+      // chai.use(chaiAsPromised);
+    </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script>
+      function multiply(a, b) {
+        return a * b
+      }
+// spec
+      describe('mengetes fungsi multiply', () => {
+        it('2 kali 3 = 6 ?', () => {
+          assert.equal(multiply(2,3), 6);
+        });
+      });
+    </script>
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>
