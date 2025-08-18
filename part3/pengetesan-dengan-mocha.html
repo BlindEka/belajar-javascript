@@ -9,11 +9,11 @@
         box-sizing: border-box;
       }
     </style>
-    <title>belajar pengetesan otomatis dengan mocha framework</title>
+    <title>belajar pengetesan otomatis dengan mocha dan chai</title>
     <link rel="stylesheet" href="../requirements/mocha/mocha.min.css"/>
     <script src="../requirements/mocha/mocha.min.js"></script>
     <script src="../requirements/chai/chai.min.js"></script>
-    <script src="../requirements/chai/chai-as-promised.min.js"></script>
+    <!-- <script src="../requirements/chai/chai-as-promised.min.js"></script> -->
     <script>
       mocha.setup('bdd'); // minimal setup
       let assert = chai.assert;
@@ -24,13 +24,46 @@
   <body>
     <div id="mocha"></div>
     <script>
-      function multiply(a, b) {
-        return a * b
-      }
-// spec
+      function multiply(x, y) {
+        if (typeof(x) == 'string' || typeof(y) == 'string') return NaN;
+        let result = 0;
+        for (let i = 0; i < y; i ++) {
+          result += +x;
+        };
+        return result;
+      };
+    </script>
+    <script>
+      // spec
       describe('mengetes fungsi multiply', () => {
-        it('2 kali 3 = 6 ?', () => {
-          assert.equal(multiply(2,3), 6);
+        // sub group
+        describe('perkalian dengan 8', () => {
+          for (let n = 1; n < 5; n ++) {
+            let expected = n * 8;
+            it(`apakah ${n} * 8 = ${expected}`, () => {
+              assert.equal(multiply(n, 8), expected)
+            });
+          };
+        });
+        /*
+        // gunakan it.only untuk hanya menjalankan beberapa test spesifik
+        // hanya test dengan it.only yang akan dijalankan jika ada
+        it.only('2 kali 3 = 6 ?', () => { //test case 1
+          assert.equal(multiply(2, 3), 6);
+        });
+        //
+        it.only('5 kali 7 = 35 ?', () => { //test case 2
+          assert.equal(multiply(5, 7), 35);
+        });
+        */
+        // perkalian dengan string menghasilkan nilai NaN
+        describe('perkalian dengan string apapun menghasilkan nilai NaN', () => {
+          let strings = ['abc', '12cm', ''];
+          strings.forEach(str => {
+            it(`perkalian "${str}" * 2`, () => {
+              assert.isNaN(multiply(str, 2), NaN);
+            });
+          });
         });
       });
     </script>
