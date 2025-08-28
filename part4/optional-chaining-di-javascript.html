@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar Optional chaining (?.) </title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // membuat array of objects
+      const users = [];
+      for (let i = 1; i <= 5; i++) {
+        users.push(
+          {
+            name: `user#${i}`,
+            age: i + 17,
+            address: i % 2 ? {street: `street#${i}`} : null,
+            tellAddress: i % 2 ? function () {console.log(this.address);} : null,
+          }
+        );
+      };
+      // mengakses property dengan aman
+      users.forEach(user => {
+        // mengakses property address.street dengan aman
+        let street = user.address?.street ?? 'no address';
+        document.write(`nama: ${user.name}<br/>address: ${street}<br/>`);
+        // memanggil method hanya jika itu ada pada object
+        // console.log('from user: ' + user.name);
+        user.tellAddress?.();
+        // mengakses key dengan aman
+        document.writeln(user.address?.['street']+'<br/>');
+      });
+    </script>
+  </body>
+</html>

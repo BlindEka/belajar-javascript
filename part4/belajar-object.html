@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar object oriented programming di javascript</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // membuat class dari fungsi
+      function Siswa(name, age, hobby) {
+        this.name = name;
+        this.age = age;
+        this.type = this.age <= 12 ? 'SD' : this.age <= 15 ? 'SMP' : 'SMA';
+        this._adult = age >= 18 ? true : false;
+        this.changeAge = (newAge) => {
+          this.age = newAge;
+          this.type = this.age <= 12 ? 'SD' : this.age <= 15 ? 'SMP' : 'SMA';
+        };
+      };
+      // new instance of Siswa
+      let siswa1 = new Siswa('iwan', 18, 'game');
+      // membuat property object sesuai nilai variable dengan [<namaVariable>]
+      let namaProp = 'hobi';
+      let hobi = 'bermain piano';
+      const orang = {
+        nama: 'andi',
+        umur: 20,
+        asal: 'garut',
+        [namaProp]: hobi,
+      };
+      // menyingkat nama property
+      function summonOrang(nama, umur) {
+        return {
+          nama, // sama dengan nama: nama
+          umur, // sama dengan umur: umur
+          ubbahNama(namaBaru) { // sama dengan ubahNama: function (namaBaru) {...}
+            this.nama = namaBaru;
+          }
+        };
+      };
+      let org1 = summonOrang('budi', 18);
+      let org2 = Object.assign({}, org1); // membaca property dari object org1 lalu meng-assign nya ke object baru ( {} )
+      // object dengan chaining method
+      const calculator = {
+        firstNumber: 0,
+        secondNumber: 0,
+        read(firstNumber, secondNumber) {
+          this.firstNumber = firstNumber;
+          this.secondNumber = secondNumber;
+          return this;
+        },
+        mul() {
+          return this.firstNumber * this.secondNumber;
+        },
+        sum() {
+          return this.firstNumber + this.secondNumber;
+        },
+        sub() {
+          return this.firstNumber - this.secondNumber;
+        },
+        div() {
+          return this.firstNumber / this.secondNumber;
+        },
+        clear() {
+          this.firstNumber = 0;
+          this.secondNumber = 0;
+          return this;
+        }
+      };
+      // new.target
+      function Smartphone(name, price) {
+        if (!new.target) { //jika dijalankan tanpa operator new
+          return {name, price};
+        };
+        this.name = name;
+        this.price = price;
+        this.discount = '20%';
+      };
+    </script>
+  </body>
+</html>

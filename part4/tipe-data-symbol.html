@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>tipe data symbol</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // membuat object dengan property yang bisa diakses hanya dengan symbol
+      let password = Symbol('password');
+      let kartuAkses = Symbol('kartu akses untuk melihat informasi akun');
+      let akun = {
+        username: 'adam',
+        [password]: 'admin',
+        lihatPassword(kartuAksesMu) {return kartuAksesMu === kartuAkses ? akun[password] : console.log('akses ditolak');},
+        ubahPassword(passBaru, kartuAksesMu) {kartuAksesMu === kartuAkses ? this[password] = passwordBaru : console.log('akses ditolak');}
+      };
+      // symbol global
+      let accessCard = Symbol.for('access card'); // membuat global symbol baru 
+      // mengambil global symbol dari registry
+      accessCard === Symbol.for('access card');
+      // mendapatkan key dari sebuah symbol
+      let accessCardKey = Symbol.keyFor(accessCard);
+      Symbol.for(accessCardKey) === accessCard;
+      // symbol tidak bisa dilihat oleh for
+      for (i in akun) {
+        console.log(i);
+      };
+      // namun ada fungsi Object.getOwnPropertySymbols atau Reflect.ownKeys
+      let keys1 = Object.getOwnPropertySymbols(akun);
+      let keys2 = Reflect.ownKeys(akun);
+    </script>
+  </body>
+</html>
