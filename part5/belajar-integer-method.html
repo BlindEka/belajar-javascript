@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>integer function dan method</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let angka = 123;
+      let angkaDesimal = 123.456;
+      let angkaString = '12cm';
+      let angkaString2 = '12.5cm';
+      // parseInt dan parseFloat
+      console.log(parseInt(angkaString)); // 12
+      console.log(parseFloat(angkaString2)); // 12.5
+      // toFixed (memotong angka desimal dibelakang ke jumlah yang diatur (ini membulatkan juga))
+      console.log(angkaDesimal.toFixed(1)) // 123.5
+      123e4; // sama dengan 123 * 10000
+      123e-4; // sama dengan 123 / 10000
+      // type checking
+      NaN === NaN; // false karena NaN nilai unik
+      isNaN(NaN); // solusi untuk mengecek apakah itu adalah NaN
+      isFinite(3); // true karena 3 termasuk angka valid / bukan Infinity atau NaN
+      Object.is(3 + 'satu' + 1, NaN); // true
+      // pembulatan
+      Math.floor(-1.2) // membulatkan ke bawah = 2
+      Math.ceil(19.1); // membulatkan ke atas = 20
+      Math.round(11.5); // membulatkan ke terdekat = 12
+      // randint function ( memilih angka termasuk diantara min dan max
+      function randint(min, max) {
+        // now rand is from  (min-0.5) to (max+0.5)
+        let rand = min - 0.5 + Math.random() * (max - min + 1);
+        return Math.round(rand);
+      };
+    </script>
+  </body>
+</html>

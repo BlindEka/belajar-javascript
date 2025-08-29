@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar method pada string</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // tipe tipe tanda petik
+      let petikSatu = 'ini petik satu';
+      let petikDua = "ini petik dua";
+      let backtick = `ini baris kesatu dari back tick
+      sedangkan ini baris kedua`;
+      // string template
+      let hasil = 1 + 1;
+      console.log(`1 + 1 = ${hasil}`); // '1 + 1 = 2'
+      // mengakses index string
+      let text = 'hello world';
+      text[0]; // 'h'
+      text.charAt(text.length - 1); // 'd'
+      // mengiterasi semua karakter
+      let newText = '';
+      for (char of text) {
+        newText += char;
+      };
+      text == newText; // true
+      // toLowerCase / toUpperCase
+      text.toLowerCase(); // 'hello world'
+      text.toUpperCase(); // 'HELLO WORLD'
+      let str = 'Widget with id';
+      str.indexOf('Widget') ; // 0, karena 'Widget' ditemukan di awal string
+      str.indexOf('widget') ; // -1, tidak ditemukan, karena pencarian bersifat case-sensitive
+      str.lastIndexOf('id'); // mencari 'id' dari belakang
+      // menggunakan bitwise operator '~' (~ n == -(n + 1))
+      if (~str.indexOf("Widget")) {
+        alert( 'Found it!' ); // bekerja
+      };
+      // method includes
+      "Widget".includes("id") ; // true
+      "Widget".includes("id", 3) ; // false, dari posisi 3 tidak ditemukan "id"
+      // mendapatkan substring
+      text.slice(0,5); // 'hello'
+      text.slice(-5); // 'world'
+      text.substring(3,8); // 'lo wo'
+      text.substr(0, 5); // ambil karakter mulai dari index 0 sepanjang 5 karakter = 'hello'
+    </script>
+  </body>
+</html>
