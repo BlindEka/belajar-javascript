@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      function Dollar(value) {
+        this.value = value ?? 0;
+        this[Symbol.toPrimitive] = function (hint) {
+          console.log('method toPrimitive dipanggil');
+          // return this; // <-- menyebabkan error karena tidak boleh mengembalikan object (hanya data primitif).
+          if (hint == 'string') return '$' + this.value;
+          else return this.value;
+        };
+      }
+      // obj.toString & obj.valueOf
+      function Rupiah(value) {
+        this.value = value ?? 0;
+        this.toString = function () {
+          console.log('method toString dipanggil');
+          // return this; // <-- menyebabkan error karena tidak boleh mengembalikan object (hanya data primitif).
+          return 'Rp.' + this.value;
+        };
+        this.valueOf = function () {
+          console.log('method valueOf dipanggil');
+          // return this; // <-- menyebabkan error karena tidak boleh mengembalikan object (hanya data primitif).
+          return this.value;
+        };
+      }
+      //
+      let money = new Dollar(10000);
+      let uang = new Rupiah(1000000);
+    </script>
+  </body>
+</html>
