@@ -50,6 +50,27 @@
       text.slice(-5); // 'world'
       text.substring(3,8); // 'lo wo'
       text.substr(0, 5); // ambil karakter mulai dari index 0 sepanjang 5 karakter = 'hello'
+      text.charAt('o', 5); // kembalikan posisi dari substring mulai dari posisi 5 pencariannya 
+      // pengecekan substring
+      'selamat datang'.includes('mat'); // true (sub string 'mat' ada pada string)
+      'terbang tinggi'.indexOf('bang', 7); // -1 karena mencari dari index 6 tidak ada substring 'bang'
+      'terbang tinggi'.lastIndexOf('bang', 7); // akan ada karena dimulai dari last index pencariannya
+      'mulai'.startsWith('mul'); // dimulai dengan substring 'mul'
+      'akhir'.endsWith('hir'); // diakhiri dengan substring 'hir'
+      // membandingkan string
+      'a'.localeCompare('A'); // selalu bandingkan dengan str.localeCompare(str2) agar perbandingan mengikuti bahasa karakter
+      function capitalize(string='') {
+        return string.slice(0, 1).toUpperCase() + string.slice(1);
+      }
+      function truncate(string='', maxLength) {
+        maxLength = maxLength ?? string.length;
+        return string.length > maxLength ? string.slice(0, maxLength - 1) + '…' : string;
+      }
+      text = '    text diawali dan diakhiri dengan 4 spasi    ';
+      console.log(text.trimLeft); // menghilangkan spasi diawal
+      console.log(text.trimRight()); // menghilangkan spasi diakhir
+      console.log(text.trim()); // menghilangkan spasi di awal dan akhir string
+      text.repeat(3); // mengulangi text sebanyak 3 kali
     </script>
   </body>
 </html>
