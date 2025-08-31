@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar array dan methodnya di javascript</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let asciiChar = new Array(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'); // menggunakan operator "..." untuk memecah tiap element pada string / array
+      let electronics = ['kulkas', 'televisi', 'mesin cuci', 'mejikom', 'setrika', 'kompor listrik', 'komputer'];
+      electronics.push('lampu', 'kipas angin', ...['air conditioner', 'radio']); // menambah item pada array dari kanan
+      electronics.unshift('raket nyamuk', 'pompa air'); // menambah item pada array dari kiri
+      electronics.pop(); // menghapus item pada array yang paling terakhir
+      electronics.shift(); // menghapus item pada array yang paling pertama
+      // mencari item pada array
+      let randomNumbers = [1,2,3,NaN, 1, 2, 3];
+      randomNumbers.includes(2); // true
+      randomNumbers.indexOf(2, 0); // mencari dari kiri dimulai index 0 = 1
+      randomNumbers.lastIndexOf(2); // mencari dari kanan = 5
+      // NaN tidak bekerja pada method indexOf dan lastIndexOf
+      randomNumbers.indexOf(NaN) ; // -1 (seharusnya 0, tetapi tanda persamaan === tidak berfungsi pada NaN)
+      randomNumbers.includes(NaN) ;// true (benar)
+      let fruits = ['apple', 'banana', 'cherry', 'guava', 'pear'];
+      fruits.length // 5
+      fruits.length = fruits.length - 3; // menghapus 3 item pada array menyisakan 2 item 
+      fruits.length = 0; // menghapus semua item pada array
+      // function dengan argumen yang ditangkap sebagai array
+      function printAnything(...items) {
+        items.forEach(item => console.log(item));
+      };
+      // array.splice(start[, deleteCount, ...elems])
+      ['i', 'dont', 'like', 'javascript'].splice(1,1); // menghapus mulai dari index ke 1 sebanyak 1 kali = ['i', 'like', 'javascript']
+      ['lets', 'have', 'a', 'dinner'].splice(0, 1, 'this', 'night', 'i',); // menghapus dari index ke 0 sebanyak 1 kali lalu menyisipkan 3 item baru
+      // menggabungkan array dengan array.concat(itemOrArray)
+      let letters = ['x', 'y', 'z'];
+      letters.concat('a', 'b', ['c', 'd']); // ['x', 'y', 'z', 'a', 'b', 'c', 'd']
+      let arrayLikeObj = {0: 'i',
+        1: 'love',
+        2: 'javascript',
+        length: 3,
+        [Symbol.isConcatSpreadable]: true, // menandakan bahwa object mendukung concat
+      }
+      ['i', 'love', 'programming', 'and'].concat(arrayLikeObj);
+      // mengiterasi item pada array dengan arr.forEach(function(item, index, array) {...})
+      letters.forEach((item, index, arr) => console.log(`huruf ${item} ada pada index ${index} pada array ${arr}`));
+    </script>
+  </body>
+</html>
