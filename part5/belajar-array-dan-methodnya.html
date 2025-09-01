@@ -47,9 +47,65 @@
         length: 3,
         [Symbol.isConcatSpreadable]: true, // menandakan bahwa object mendukung concat
       }
-      ['i', 'love', 'programming', 'and'].concat(arrayLikeObj);
+      let concattedArray = ['i', 'love', 'programming', 'and'].concat(arrayLikeObj);
       // mengiterasi item pada array dengan arr.forEach(function(item, index, array) {...})
       letters.forEach((item, index, arr) => console.log(`huruf ${item} ada pada index ${index} pada array ${arr}`));
+      // 
+      let users = [
+        {name: 'andi', age: 18},
+        {name: 'angga', age: 19},
+        {name: 'budi', age: 17},
+        {name: 'iwan', age: 22},
+        {name: 'alfath', age: 21},
+        {name: 'reza', age: 25},
+      ];
+      // mencari user dengan nama 'andi'
+      users.find((item, index, array) => item.name == 'andi'); // {name: 'andi', ...}
+      // mencari dan mendapatkan index
+      users.findIndex(item => item.age > 18); // mengembalikkan user yang memiliki age > 18 pertama kali
+      // memfilter isi array
+      users.filter(item => item.name.toLowerCase().startsWith('a')); // memfilter pada user yang memiliki nama diawali huruf 'a' secara case-insensitive
+      // melakukan operasi pada setiap item pada array lalu mengembalikan array baru dengan item yang baru tersebut
+      let updatedUsers = users.map(item => {
+        item = Object.assign({}, item); // kloning objek agar tidak mengubah objek aslinya
+        item.age += 1; // menambah usia setiap user sebanyak 1 tahun
+        return item; // mengembalikan objek ini sbg item yang baru di array yang baru
+      });
+      // mengurutkan array
+      users.sort((a, b) => {
+        if (a.name > b.name) return 1;
+        if (a.name == b.name) return 0;
+        if (a.name < b.name) return -1;
+      });
+      [1,3,2,4,6,5].sort((a, b) => a - b); // mengembalikan angka positif = a >b, negatif = a < b, 0 = a == b
+      users.reverse(); // membalikan urutan item
+      let daftarBarang = electronics.join('\n'); // menghasilkan string dengan separator karakter newline antara item pada array
+      daftarBarang.split('\n'); // memisahkan string oleh karakter newline dan menghasilkan array yang baru berisi string tersebut
+      // reduce & reduceRight
+      let makananFavorit = ['baso', 'ayam', 'sambel', 'tempe', 'bayam'];
+      makananFavorit.reduce((prevValue, currValue) => prevValue + '\n' + currValue, 'makanan favorit saya:'); // menghasilkan string yang telah digabungkan dengan separator newline dan diawali dengan string 'makanan favorit saya:'
+      makananFavorit.reduceRight((prevValue, currValue) => prevValue + '\n' + currValue, 'makanan favorit saya:'); // sama dengan diatas namun daftar makanan akan terbalik urutannya dari akhir ke awal
+      Array.isArray(makananFavorit); // memeriksa apakah obj ini array
+      // thisArgument pada fx filter, map, reduce, dll
+      let student= {
+        identify(user) {
+          return user.age >= 19 ? 'mahasiswa' : user.age >= 16 ? 'sma' : user.age >= 13 ? 'smp' : 'sd';
+        },
+        isMahasiswa(user) {
+          return this.identify(user) == 'mahasiswa';
+        },
+      };
+      let mahasiswa = users.filter(student.isMahasiswa, student); // menggunakan obj student sebagai this di fungsi sehingga fungsi bisa dijalankan
+      // mengecek semua item pada array
+      mahasiswa.every(user => user.age >= 21); // mengecek apakah semua mahasiswa berumur >= 21 = false
+      mahasiswa.some(user => user.age >= 21); // mengecek apakah beberapa mahasiswa berumur >= 21 = true
+      function camelize(string, separator='-', capitalize=false) {
+        return string.split(separator).map((str, index) => index == 0 && ! capitalize ? str.slice(0,1) + str.slice(1) : str.slice(0,1).toUpperCase() + str.slice(1)).join('');
+      };
+      randomNumbers.fill(4, 5, 7); // menimpa nilai dari index ke 5 sampai ke 7 dengan nilai 4 secara terus menerus
+      randomNumbers.copyWithin(3,0,2); // menyalin item di dalam array dari index 0 sampai 2 (tidak termasuk) dan menimpa item di mulai dari index ke 3 hingga jumlah item yang disalin (index 0,1 = 2)
+      let multidimensionArray = [[[1,2,3],[4,5,6,]],[[7,8,9],[10,11,12]], [13, 14, 15]];
+      let flatArray = multidimensionArray.slice().flat(3); // meratakan item: mengeluarkan item pada sub array ke luar array utama hingga kedalaman 3 sub array
     </script>
   </body>
 </html>
