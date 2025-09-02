@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar object map dan set serta methodnya</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      function KTP(nama, umur, alamat, sudahMenikah) {
+        if (! new.target) return new KTP(nama, umur, alamat, sudahMenikah);
+        this.nama = nama;
+        this.umur = umur;
+        this.alamat = alamat;
+        this.sudahMenikah = sudahMenikah;
+      };
+      let orang = new Map();
+      orang.set('nama depan', 'andi');
+      orang.set('umur', 20)
+      orang.set(KTP, new KTP('andi ramadhani', 20, 'bandung', false)); // menggunakan object sebagai key dari mapping
+      // mendapatkan value
+      orang.get(KTP); // object KTP
+      // mengecek apakah key tertentu ada
+      orang.has('umur'); // false
+      // menghapus key
+      orang.delete('umur');
+      // mengembalikan jumlah elemen saat ini.
+      orang.size;
+      // orang.clear(); // membersihkan mapping
+      // chaining method
+      let gradeMapping = new Map().set('A', 'Excellent').set('B', 'Great').set('C', 'Good Job').set('D', 'Nice Try');
+      for (grade of gradeMapping.keys()) { // mengiterasi semua keys dari map
+        console.log('Grade: '+ grade);
+      };
+      for (gradeDescription of gradeMapping.values()) { // mengiterasi semua nilai pada map
+        console.log('Grade description: ' + gradeDescription);
+      };
+      for (gradeAndDescription of gradeMapping.entries()) {
+        console.log(gradeAndDescription[0] + ' - ' + gradeAndDescription[1] + '!');
+      };
+      // sama dengan yang ini
+      let smartphonePrices = new Map();
+      smartphonePrices.set('samsung', 35e5).set('iPhone', 6e6).set('Xiaomi', 3e6);
+      smartphonePrices.forEach((v, k, mapping) => console.log(`from Brand: ${k}\nPrice: ${v}`));
+      // membuat mapping dari object
+      let kartuAkses = Symbol('kartu akses untuk mendapatkan otoritas pada akun anda');
+      let akun = {
+        username: 'hartono3312',
+        [kartuAkses]: 'sayaSukaNgoding',
+      };
+      let mapAkun = new Map(Object.entries(akun));
+      mapAkun.get(kartuAkses); // 'sayaSukaNgoding'
+      // lakukan sebaliknya
+      let smartphoneObj = Object.fromEntries(smartphonePrices.entries())
+      smartphoneObj = Object.fromEntries(smartphonePrices) // sama dengan yg diatas
+      // 
+      // set
+      let pengunjungYangDatang = ['budi', 'andi', 'yudi', 'ahmad', 'dian', 'agus', 'dian', 'ahmad', 'iwan', 'budi'];
+      let namaPengunjung = new Set(pengunjungYangDatang);
+      namaPengunjung.size; // 7 ( tidak menyimpan nilai duplikat)
+      namaPengunjung.add('budi').add('haykal').add('haykal'); // hanya bertambah satu kali
+      namaPengunjung.delete('budi');
+      // iterasi
+      namaPengunjung.forEach((value, value2, set) => console.log('nama saya ' + value));
+      // membersihkan anagram (kata2 yang memiliki huruf yang sama)
+      function aClean(words) {
+        let cleanWords = new Map();
+        words.forEach(word => {
+          cleanWords.set(word.toLowerCase().split('').sort().join(''), word);
+        });
+        return Array.from(cleanWords.values());
+      };
+      let anagramWords = ["nap", "teachers", "cheaters", "PAN", "ear", "era", "hectares"]
+      aClean(anagramWords);
+    </script>
+  </body>
+</html>
