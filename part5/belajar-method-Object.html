@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar method bawaan Object</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let buahDanHarganya = {
+        apel: 35e3,
+        pisang: 15e3,
+        jeruk: 2e4,
+        nanas: 23e3,
+      };
+      // mengembalikan semua nama property dalam bentuk array dari sebuah objek dengan Object.keys()
+      let namaBuah = Object.keys(buahDanHarganya);
+      namaBuah.forEach(buah => console.log(buah));
+      // mengembalikan semua nilai property dalam bentuk array dari sebuah objek dengan Object.values()
+      let hargaBuah = Object.values(buahDanHarganya);
+      hargaBuah.forEach(buah => console.log(buah));
+      // konversi ke object Map
+      let mappingBuah = new Map(Object.entries(buahDanHarganya));
+      mappingBuah.forEach((harga, nama) => console.log(nama+': '+harga));
+      let mappingKeObjek = Object.fromEntries(mappingBuah); // ubah kembali ke objek
+      function discount(obj, percentage) {
+        return Object.fromEntries(Object.entries(obj).map(([itemName, price]) => [itemName, (percentage ?? 0) >= 100 ? 0 : price * (100 - (percentage ?? 0)) / 100]));
+      }
+      function sumPrices(obj) {
+        let sumPrice = 0;
+        for (price of Object.values(obj)) {
+          sumPrice += price;
+        };
+        return sumPrice;
+      }
+      function propertyLength(obj) {
+        return Object.keys(obj).length;
+      }
+    </script>
+  </body>
+</html>

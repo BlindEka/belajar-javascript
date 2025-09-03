@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar object weak map dan weak set</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      // membuat object WeakSet
+      const players = new WeakSet();
+      let seeds = new WeakMap();
+      let roleBaseStat = new Map([['fighter', 5],['wizard', 3], ['assasin', 7]]);
+      let seenMessages = new WeakSet();
+      let allMessages = new WeakMap();
+      const role = {
+        FIGHTER: 'fighter',
+        WIZARD: 'wizard',
+        ASSASSIN: 'assasin',
+      };
+
+      function getSeed(obj) {
+        if (! seeds.has(obj)) {
+          let newSeed = Math.random();
+          seeds.set(obj, newSeed);
+        };
+        return seeds.get(obj);
+      }
+      //
+      function Messaging(user) {
+        allMessages.set(user, this.inbox);
+        this.user = user;
+        this.inbox = [];
+        this.sendMessage = (to, text) => {
+          if (to.message?.inbox) {
+            let message = {
+              from: this.user,
+              to: to,
+              text: text,
+              read() {
+                seenMessages.add(this);
+                return this.text;
+              }
+            };
+            to.message.inbox.push(message);
+          }
+        };
+        this.isSeenMessage = message => seenMessages.has(message);
+      }
+      // 
+      function Player(username, role) {
+        if (! new.target) return new Player(username, role);
+        players.add(this);
+        this.username = username;
+        this.role = role;
+        let seed = getSeed(this);
+        let baseStat = roleBaseStat.get(role) ?? 3;
+        this.power = baseStat + seed * (baseStat / 2);
+        this.friends = new WeakSet();
+        this.addFriend = player => {
+          this.friends.add(player);
+          player.friends.add(this);
+        };
+        this.isMyFriend = player => this.friends.has(player);
+        this.message = new Messaging(this);
+        this.sendMessage = (to, text) => {
+          if (! this.isMyFriend(to)) return false; // hanya teman yang bisa dikirimi pesan
+          this.message.sendMessage(to, text);
+          return true;
+        }
+      }
+      let player1 = new Player('player1', role.FIGHTER);
+      let player2 = new Player('player2', role.WIZARD);
+      let player3 = new Player('player1', role.ASSASSIN);
+      // menghapus referensi objek sehingga WeakMap tidak menyimpan nilai atas kunci objek itu lagi dan garbage collector menghapusnya dari memori
+      player3 = null; // seed di WeakMap untuk player ini telah dihapus
+      // mengirim pesan
+      player1.addFriend(player2);
+      player1.sendMessage(player2, 'halo apa kabar');
+      player1.sendMessage(player2, 'ayo pergi farming?');
+      console.log(player2.message.inbox[0].read());
+    </script>
+  </body>
+</html>
