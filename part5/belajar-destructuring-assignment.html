@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar destructuring assignment</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      let vector = [20, 12, 33];
+      // assign ke 3 variable berbeda dari vector
+      let [x, y, z] = vector;
+      console.log([x, y, z].toString()); // 20,12,33
+      let user = {name: 'alex', isAlive: true, age: 20,};
+      // melewati item ke dua dari array dengan membiarkan kosong diantara 2 koma (,)
+      let [name, , age] = Object.values(user);
+      console.log(`name=${name},age=${age}`); // name=alex,age=20
+      // assign ke property object
+      [user.name, user.surname] = 'sam smith'.split(' ');
+      // tukar nilai variabel
+      let [fName, surname] = 'john brandon'.split(' ');
+      [fName, surname] = [surname, fName];
+      // destruksturisasi dalam for.of loop
+      let fruits = new Map([
+        ['apple', 3],
+        ['orange', 2],
+        ['banana', 4],
+      ]);
+      for (let [k, v] of fruits) {
+        console.log(k+'='+v);
+      };
+      // menyimpan sisa nilainya
+      let numbers = [1,2,3,4,5,6,7,8];
+      let [num1, num2, ...restNums] = numbers;
+      // nilai default
+      vector = [20];
+      [x=Math.random(), y=0, z=0] = vector; // method Math.random tidak dijalankan karena nilai untuk x ada dalam array vector
+      // destructuring object
+      let img = {
+        caption: 'gambar gunung',
+        width: 200,
+        height: 200,
+        url: 'https://cdn.examples.com/img1.jpeg',
+      };
+      let {url, title = 'gambar tak berjudul'} = img; // nama variabel akan dicocokan dengan nama property objek dan akhirnya menyimpan nilainya ke variabel tersebut
+      let {url: imgUrl, caption: imgCap='gambar tidak berjudul'} = img; // menggunakan colon (:) untuk memetakan nilai property ke nama variable yang berbeda
+      // menyimpan sisa properti ke sebuah variabel sbg objek
+      let restProperties
+      ({caption: imgCap, ...restProperties} = img); // menggunakan tanda kurung '({...})' karena tidak menggunakan ekspresi 'let' agar javascript tidak mengira tanda kurawal sebagai sebuah blok kode
+      // destructuring object multidimensi
+      let invoice = {
+        totalPrice: 57,
+        customer: {
+          name: 'alex',
+          age: 22
+        },
+        items: [
+          {name: 'donut', price: 12},
+          {name: 'french fries', price: 15},
+          {name: 'pizza', price: 30},
+        ]
+      };
+      let {
+        totalPrice,
+        customer: {
+          name: customerName,
+          age: customerAge,
+        },
+        items: [
+          {name: itemName1},
+          {name: itemName2},
+          {name: itemName3},
+        ]
+      } = invoice;
+      console.log(`
+      total invoice)
+      name: ${customerName}
+      age: ${customerAge}
+      items:
+      - ${itemName1}
+      - ${itemName2}
+      - ${itemName3}
+      total price: ${totalPrice}
+      `);
+      // destructuring dalam function sebagai parameter
+      function getInvoice({name: customerName = 'Anonymous'}={}, items=[]) {
+        let totalCost = getTotalCost(items);
+        return {
+          customerName: customerName,
+          totalCost: totalCost,
+          items: items,
+        };
+      };
+      // 
+      function getTotalCost(items=[]) {
+        return items.reduce((prevValue, {price}) => prevValue + price, 0);
+        let totalCost = 0;
+        for ({price} of items) {
+          totalCost += price;
+        };
+        return totalCost;
+      }
+      // 
+      function printInvoice({customerName, totalCost, items}={}) {
+        console.log([
+        `customer: ${customerName}`,
+        `items:`,
+        `- ${items.map(({name}) => name).join('\n- ')}`,
+        `total cost: ${totalCost}`
+      ].join('\n'));
+      }
+      // 
+      let items = [
+        {name: 'hotdog', price: 10},
+        {name: 'cola drink', price: 7},
+        {name: 'hamburger', price: 12},
+        {name: 'spicy french fries', price: 12},
+      ];
+      // get invoice
+      let myInvoice = getInvoice(user, items);
+      printInvoice(myInvoice);
+      function sum(...numbers) {
+        return numbers.reduce((prev, curr) => prev + curr, 0);
+      }
+    </script>
+  </body>
+</html>
