@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar rest parameter dan syntax spread</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // syntax spread untuk menyalin object atau array dan iterable
+      let arr = [1,2,3,4,5];
+      let obj = {name: 'william', age: 26, sex: 'boy'};
+      let copyArr = [...arr];
+      let copyObj = {...obj};
+      // atau
+      [...copyArr] = arr;
+      ({...copyObj} = obj);
+      // apakah item dan propertynya sama dan referensi nya berbeda ?
+      JSON.stringify(arr) == JSON.stringify(copyArr); // true
+      JSON.stringify(obj) == JSON.stringify(copyObj); // true
+      arr == copyArr; // false
+      obj == copyObj; //false
+      // rest parameter (menangkap semua argumen yang tersisa)
+      function sum(...numbers) {
+        return numbers.reduce((prevSum, currNum) => prevSum + currNum, 0);
+      }
+      function multiply(x, ...numbers) {
+        let result = 0;
+        let multiplier = numbers.shift() ?? 0;
+        for (let i = 0; i< multiplier; i ++) {
+          result += x;
+        };
+        return numbers.length ? multiply(result, ...numbers) : result;
+      }
+    </script>
+  </body>
+</html>
