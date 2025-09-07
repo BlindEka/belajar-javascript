@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar objek Date dan methodnya</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // mendapatkan tanggal dan waktu sekarang
+      let now = new Date();
+      console.log('waktu sekarang:', now);
+      // new Date(milliseconds) (milliseconds setelah 1 januari 1970)
+      let duaHariSetelah1Jan1970 = new Date(2 * 24 * 3600 * 1000);
+      console.log('dua hari setelah 1 januari 1970:', duaHariSetelah1Jan1970);
+      // new Date("YYYY-MM-DD") - menginisialisasi dengan string tanggal (sama dengan Date.parse)
+      let satuFeb2020 = new Date('2020-02-01');
+      console.log('1 feb 2020:', satuFeb2020);
+      // new Date(year, month, date, hours, minutes, seconds, ms) (parameter yang wajib hanya yang dua pertama (nilai month ada dari 0 hingga 11))
+      let jun11_2025 = new Date(2025, 6 - 1, 11, 10, 30);
+      console.log('jun11_2025:', jun11_2025);
+      // mengakses komponen tanggal
+      now.getFullYear(); // Mendapatkan tahun (4 angka)
+      now.getMonth(); // Mendapatkan bulan, dari 0 sampai 11.
+      now.getDate(); // mendapatkan hari dari bulan, dari 1 sampai 31
+      now.getDay(); // mendapatkan hari dari minggu, dimulai dari 0 (Minggu) ke 6 (Sabtu). Hari pertama akan selalu Minggu, di beberapa negara bukanlah minggu, dan tidak bisa diubah.
+      now.getHours(); // mendapatkan jam
+      now.getMinutes(); // mendapatkan menit
+      now.getSeconds(); // mendapatkan detik
+      now.getMilliseconds(); // mendapatkan milidetik
+      // date.getUTC*() untuk mendapatkan waktu dengan zona waktu UTC+0
+      now.getUTCDate() // mendapatkan hari dalam bulan dengan zona waktu UTC+0
+      // dst...
+      now.getTime(); // Mengembalikan timestamp untuk tanggal (angka milidetik yang telah terlewat sejak 1 Januari 1970 UTC+0)
+      // Mengembalikan perbedaan diantara UTC dan zona waktu lokal, dalam menit
+      now.getTimezoneOffset(); // 0 - 7 * 60 = 420 (untuk GMT+0700 )
+      // date.set* / setUTC*
+      let today = new Date();
+      today.setFullYear(today.getFullYear(), 0, 1); // (year, month,, date)
+      today.setMonth(today.getMonth(), 1);
+      today.setDate(today.getDate() + 1);
+      today.setHours(today.getHours() + 1, 0, 0, 0); // (hour + 1, minute, seconds, milliseconds)
+      today.setMinutes(today.getMinutes() + 1, 0, 0); // (minutes + 1, seconds, milliseconds)
+      today.setSeconds(now.getSeconds() + 1, 0); // (seconds + 1, milliseconds)
+      today.setMilliseconds(today.getMilliseconds() + 1); // (milliseconds)
+      // auto correction
+      let date = new Date(2013, 0, 32); // 32 Jan 2013 ?!?
+      console.log(date); // ...adalah 1st Feb 2013!
+      date.setDate(0); // kurangi 1 hari, jadi diasumsikan hari terakhir di bulan sebelumnya
+      date.setHours(0, 0);
+      date.setHours(-2); // 00:00 - 02:00 = jam 22:00 kemarin
+      // Date.now() (mendapatkan timestamp) (sama saja dgn new Date().getTime())
+      function sleep(seconds) {
+        return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+      };
+      let timestamp = Date.now();
+      async function simulasiBenchmark() {
+        console.log('benchmark dimulai.');
+        let startTime = Date.now();
+        // simulasi kalkulasi
+        await sleep(5);
+        let endTime = Date.now();
+        console.log(`kalkulasi memakan waktu selama ${(endTime - startTime)} milidetik`);
+      };
+      simulasiBenchmark();
+      // Date.parse('YYYY-MM-DDTHH:mm:ss.sssZ') ( "T" adalah pembatas , "Z" adalah zona waktu yang merupakan optional ["Z" berarti utc+0000])
+      // Varian yang lebih pendek juga bisa, seperti YYYY-MM-DD atau YYYY-MM atau bahkan YYYY.
+      // mengembalikan timestamp (angka dalam milidetik dari 1 Januari 1970 UTC+0). Jika formatnya tidak valid, akan mengembalikan NaN.
+      let ms = Date.parse('2012-01-26T13:51:50.417-07:00');
+      console.log(ms); // 1327611110417  (timestamp)
+      date = new Date(Date.parse('2025-09-05T08:00:00.000-07:00')); // 2025 september 5 15:00 GMT +07:00
+      console.log(date);
+      // konversikan ke timestamp
+      timestamp = +date;
+      console.log(timestamp);
+      // operasi pengurangan menghasilkan selisih dari timestamp
+      let selisih = date - now;
+      console.log(selisih);
+      function getWeekDay(date) {
+        return ['minggu', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'][date.getDay()].slice(0,3);
+      }
+      function getDayAgo(date, day) {
+        return new Date(new Date(+date).setDate(date.getDate() - day));
+      }
+      function getLastDayOfMonth(year, month) {
+        return new Date(year, month + 1, 0).getDate();
+      }
+      // mendapatkan detik yang telah berlalu pada hari ini
+      function getSecondsToday() {
+        return Math.round((new Date() - new Date().setHours(0,0,0,0)) / 1000);
+      }
+      function getSecondsToTomorrow() {
+        return Math.round((new Date().setHours(24, 0,0,0) - new Date().getTime()) / 1000);
+      }
+      let a = new Date();
+      let b = new Date(a.getTime() + getSecondsToTomorrow() * 1000);  
+    </script>
+  </body>
+</html>

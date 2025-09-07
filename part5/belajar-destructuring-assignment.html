@@ -13,6 +13,7 @@
   </head>
   <body>
     <script>
+      "use strict";
       let vector = [20, 12, 33];
       // assign ke 3 variable berbeda dari vector
       let [x, y, z] = vector;
@@ -128,6 +129,17 @@
       function sum(...numbers) {
         return numbers.reduce((prev, curr) => prev + curr, 0);
       }
+      //
+      function topSalary(salaries) {
+        return Object.values(salaries).every(v => ! v) ? null : Object.entries(salaries).reduce(([prevName, prevSalary], [currName, currSalary]) => (prevSalary ?? 0) > currSalary ? [prevName, prevSalary] : [currName, currSalary])[0]
+      }
+      let salaries = {
+        john: 200,
+        david: 225,
+        alex: 140,
+        brandon: 300,
+      };
+      topSalary(salaries); // brandon
     </script>
   </body>
 </html>
