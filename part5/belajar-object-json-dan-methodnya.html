@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar object JSON dan methodnya</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      function mod(a, b) {return Math.trunc((a - (a % b)) / b);}
+      let img = {
+        url: 'https://www.image-galery-example.com/image-example-1.jpg',
+        width: 250,
+        height : 250,
+      };
+      // JSON.stringify(obj) (mengkonversi object ke dalam json serialized (string))
+      let json = JSON.stringify(img);
+      typeof json; // string
+      console.log(json);
+      let videoMeta = {
+        title: 'how to use JSON object in javascript programming language',
+        duration: {
+          str: '07:00',
+          ms: 42e4
+        },
+        viewCount: 2e5,
+        tags: ['javascript', 'programming', 'programming language', 'json', 'web'],
+        getVideoData() {}, // diabaikan
+      };
+      let videoMetaJson = JSON.stringify(videoMeta);
+      console.log(videoMetaJson);
+      // object yang memiliki referensi memutar (sirkular) tidak bisa di serialize
+      videoMeta.thumbnail = img; // videoMeta object mereferensikan img object
+      img.videoMeta = videoMeta; // namunn img mereferensikan juga ke videoMeta object
+      // let videoMetaJson2 = JSON.stringify(videoMeta); // Uncaught TypeError: Converting circular structure to JSON
+      // menggunakan parameter "replacer" untuk menentukan mana yang akan di serialize
+      json = JSON.stringify(videoMeta, ['title', 'viewCount', 'tags', 'duration']) // menentukan key yang akan di serialize dalam array
+      console.log(json);
+      json = JSON.stringify(videoMeta, (key, value) => {
+        // menghindari referensi berulang
+        return key != "" && value == videoMeta ? undefined : value; // object wrapper pertama akan selalu menyimpan objek yang akan di serialize dengan key string kosong ("") 
+      });
+      console.log(json);
+      // parameter space untuk mengatur indentasi
+      let user = {
+        name: 'david',
+        age: 30,
+        skill: ['html', 'css', 'javascript'],
+        role: {jobDesk: 'fullstack'},
+      };
+      let userJson = JSON.stringify(user, null, 2); // indentasi dengan 2 spasi
+      console.log(userJson);
+      // method toJSON (dipanggil ketika object di serialize)
+      function Time(hours, minutes, seconds, milliseconds) {
+        if (! new.target) return new Time(...arguments);
+        if (! arguments.length) {
+          let now = new Date();
+          hours = now.getHours();
+          minutes = now.getMinutes();
+          seconds = now.getSeconds();
+          milliseconds = now.getMilliseconds();
+        };
+        this.hours = hours;
+        this.minutes = minutes ?? 0;
+        this.seconds = seconds ?? 0;
+        this.milliseconds = milliseconds ?? 0;
+        this.toString = () => {
+          return `${this.hours < 10 ? '0' + this.hours : this.hours}:${this.minutes < 10 ? '0' + this.minutes : this.minutes}:${this.seconds < 10 ? '0' + this.seconds: this.seconds}.${this.milliseconds}`;
+        };
+        this.toJSON = () => this.toString();
+        this.valueOf = () => (this.hours * 36e5) + (this.minutes * 6e4) + (this.seconds * 1e3) + this.milliseconds;
+      };
+      Time.isTimeString = (timeString) => {
+        let timeArray = timeString.split(':');
+        timeArray = timeArray.concat(timeArray.pop().split('.'));
+        return timeArray.length == 4 && timeArray.every(num => isFinite(num)) ? true : false;
+      };
+      Time.fromTimeString = function(timeString) {
+        if (! this.isTimeString(timeString)) return NaN;
+        let timeArray = timeString.split(':');
+        timeArray.concat(timeArray.pop().split('.'));
+        return new Time(...timeArray);
+      };
+      let meetingTime = new Time();
+      let meetingInfo = {
+        topic: 'programming',
+        location: 'online',
+        meetingTime,
+      };
+      let meetingJson = JSON.stringify(meetingInfo, null, 2);
+      console.log(meetingJson);
+      // menggunakan reviver untuk mengubah serialize object ke object seharusnya
+      let meetingInfo2 = JSON.parse(meetingJson, (key, value) => {
+        if (typeof(value) == 'string' && Time.isTimeString(value)) return Time.fromTimeString(value); // mengubah timeString ke object semulanya
+        return value;
+      });
+      console.log(meetingInfo2.meetingTime.hours);
+    </script>
+  </body>
+</html>
