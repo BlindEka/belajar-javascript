@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar lingkungan lexical dan closure di javascript</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // lingkungan lexical yang baru selalu dibuat saat fungsi dipanggil
+      // Closure ialah fungsi yang mengingat variabel luarnya dan bisa mengakses mereka
+      // di javascript semua fungsi adalah closure
+      function makeCounter() {
+        let count = 0;
+        // sekarang lingkungan lexical menyimpan object yang menampung variabel count sbg property dan referensi ke object lexical luar (global)
+        return function () {
+          // lingkungan lexical baru telah dibuat yang mereferensikan juga lexical luar (lexical sebelumnya)
+          return count ++;
+        };
+      }
+      let counter1 = makeCounter(); // karena fungsi bersarang yang dikembalikan masih mereferensikan lingkungan lexical makeCounter, object nya tidak dibersihkan dari memory
+      console.log(counter1()); // 0
+      console.log(counter1()); // 1
+      let counter2 = makeCounter(); // lingkungan lexical baru yang benar2 berbeda dibuat
+      console.log(counter2()); // 0
+      // membuat variable yang tidak terlihat
+      function Account(username, password) {
+        this.getPassword = function() {
+          return password;
+        };
+        this.getUsername = function() {
+          return username;
+        };
+      }
+      let akun = new Account('john', 'myPass123');
+      akun.getUsername(); // 'john'
+      akun.getPassword(); // 'myPass123'
+      // penggunaan variabel sebelum inisialisasi
+      let value = 123;
+      function test() {
+        // semua variabel dalam blok ini dibaca dan telah disimpan di lingkungan lexical setelah fungsi dipanggil
+        // dan dalam status "belum dinisialisasi" sebelum ekspresi "let" misal
+        console.log(value); // error variable baru dinisialisasi di baris berikutnya
+        let value = 321;
+      }
+      // test()
+    </script>
+  </body>
+</html>
