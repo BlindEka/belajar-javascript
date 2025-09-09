@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar membuat fungsi dengan syntax new Function</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // membuat fungsi
+      let sayHi = new Function('name', 'console.log("hi", name ?? "Guest")');
+      sayHi('alex'); // hi alex
+      sayHi(); // hi Guest
+      let sum = new Function(['num1', 'num2'], 'return num1 + num2'); // parameter didefinisikan dalam suatu array
+      let multiply = new Function('num1, num2', 'return num1 * num2'); // parameter didefinisikan dalam satu string dipisahkan dengan koma (,)
+      let power = new Function('num1', 'num2', 'return num1 ** num2'); // parameter didefinisikan dengan 2 argumen string yang berbeda
+      // fungsi yang dibuat dengan new Function(...) selalu mereferensikan ke lingkungan lexical global
+      function makeCounter() {
+        let counter = 0;
+        let count = new Function('return counter ++');
+        return count;
+      }
+      let counter1 = makeCounter();
+      // counter1(); // error counter is not define
+    </script>
+  </body>
+</html>

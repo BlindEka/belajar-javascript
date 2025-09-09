@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar penjadwalan pemanggilan fungsi</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // setTimeout(function/code, delay(in milliseconds), ...functionArguments) (menjadwalkan pemanggilan fungsi setelah delay, mengembalikan timer id)
+      let timerId = setTimeout(name => console.log('hello', name), 3000, 'alex'); // mencetak 'hello alex' setelah 3 detik
+      console.log(timerId); // 1
+      timerId = setTimeout(name => console.log('hello', name), 3000, 'wesker'); // tidak pernah dipanggil
+      clearTimeout(timerId); // membatalkan penjadwalan
+      // akan dipanggil di akhir script jika delay tidak diberikan
+      setTimeout(() => console.log('saya datang terakhir'));
+      console.log('saya datang pertama');
+      console.log('saya datang kedua');
+      // setInterval(function/code, interval(milliseconds), ...args) (memanggil fungsi setiap interval terlepas fungsi yang telah dipanggil sudah selesai atau tidak, mengembalikan timerId)
+      let obj = {currentValue: 100, oldValue: 100};
+      let intervalTimerId = setInterval(() => {
+        if (obj.currentValue != obj.oldValue) {
+          console.log(`nilai telah berubah dari ${obj.oldValue} menjadi ${obj.currentValue}`);
+          obj.oldValue = obj.currentValue;
+        };
+        if (obj.stop) {
+          clearInterval(intervalTimerId);
+          console.log('saya telah berhenti mengawasi property obj');
+        }
+      }, 100); // mengecek property obj setiap 100 milidetik
+      // membuat event listener dengan setTimeout bersarang
+      function createEventListener(trigger, action, stopCondition) {
+        let isListening = false;
+        let isStopped = true;
+        let controller = {};
+        //
+        function loop() {
+          if (trigger()) action();
+          if (isStopped || stopCondition?.()) console.log('stop listening...')
+          else setTimeout(loop, 100);
+        };
+        //
+        function listen() {
+          if (! isListening) {
+            isStopped = false;
+            isListening = true;
+            loop();
+          } else console.log('already listening');
+        };
+        // 
+        function stop() {
+          isStopped = true;
+          isListening = false;
+        };
+        return {
+          listen,
+          stop,
+          isListening: () => isListening,
+          isStopped: () => isStopped
+        };
+      };
+      // buat event listenernya
+      let myCounter = {
+        counter: 0,
+        oldValue: 0,
+        valueOf() {return this.counter;},
+        increase() {
+          this.counter ++;
+          return this;
+        },
+        decrease() {
+          this.counter --;
+          return this;
+        }
+      };
+      let myEvent = createEventListener(function() {return myCounter.counter != myCounter.oldValue;}, function() {
+        console.log(`hitungan telah berubah dari ${myCounter.oldValue} menjadi ${myCounter.counter}`);
+        myCounter.oldValue = myCounter.counter;
+      });
+      myEvent.listen();
+    </script>
+  </body>
+</html>
