@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title> belajar decorator dan call forwarding</title>
+    <script src="../random.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 id="typing-info">tidak sedang mengetik</h2>
+    <textarea id="input-text" placeholder="ketik sesuatu disini..."></textarea>
+    <script>
+      "use strict";
+      // caching decorator
+      function cachingDecorator(func, hash, thisArg) {
+        let cache = new Map();
+        return function(...args) {
+          let key = hash?.(args) ?? args
+          if(cache.has(key)) return cache.get(args)
+          let result = func.call(thisArg ?? this, ...args); // call forwarding
+          cache.set(key, result);
+          return result;
+        };
+      }
+      // fungsi yang akan di bungkus decorator
+      function mulMatrix(matrixX, matrixY) {
+        if (
+          matrixX.flat(2).length != matrixY.flat(2).length ||
+          arguments.length < 2 ||
+          [matrixX, matrixY].some(value => ! value)
+        ) return NaN;
+        console.log('mengkalkulasikan matrix');
+        return matrixX.map((row, rowIndex) => {
+          return row.map((num, numIndex) => num * matrixY[rowIndex][numIndex]);
+        });
+      }
+      // decorate fungsinya
+      let decoratedMulMatrix= cachingDecorator(mulMatrix, (args) => args.flat(2).join('')); // hashing dengan menjadikan matrix sbg string
+      let matrix = [];
+      for (let i = 0; i < 10; i ++) {
+        let m = [];
+        for (let i = 0; i < 3; i ++) {
+          m.push([
+            random.randint(1,20),
+            random.randint(1,20),
+            random.randint(1,20),
+          ]);
+        };
+        matrix.push(m);
+      };
+      let result1 = decoratedMulMatrix(matrix[0], matrix[1]); // mengkalkulasi vector
+      let result2 = decoratedMulMatrix(matrix[2], matrix[1]); // mengkalkulasi vector
+      let result3 = decoratedMulMatrix(matrix[7], matrix[5]); // mengkalkulasi vector
+      decoratedMulMatrix(matrix[2], matrix[1]); // mengambil hasil dari cache
+      decoratedMulMatrix(matrix[7], matrix[5]);
+      // tidak bekerja pada method yang mengharapkan this argument
+      let user = {
+        name: {shortName: 'david', fullName: 'david graham'},
+        greet(name) {console.log('hi, my name is', name ?? this.name.fullName);} // method mengharapkan property this.name.fullName
+      }
+      let greetError = cachingDecorator(user.greet);
+      // greet(); // Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+      // menggunakan thisArg yang akan digunakan pada func.call(thisArg, ...args) di dekorator
+      let greet = cachingDecorator(user.greet, String, user); // sekarang setiap fungsi asli dijalankan akan menggunakan thisArg yang diberikan (user disini)
+      greet(); // 'hi, my name is david graham'
+      user.introduce = cachingDecorator(user.greet, String); // sama sama bekerja
+      // menggunakan func.apply(context, arrayLikes) dibandingkan func.call(context, ...args)
+      function decorator(func, hash, thisArg) {
+        let cache = new Map();
+        return function(...args) {
+          let key = hash?.(args) ?? String(args);
+          if (cache.has(key)) return cache.get(key);
+          let result = func.apply(thisArg ?? this, args);
+          if (result != undefined) cache.set(key, result);
+          return result;
+        };
+      };
+      user.introduce = decorator(user.greet);;
+      user.introduce('alex connor');
+      // method borrowing
+      let arrLikes = {
+        0: 'apple',
+        1: 'banana',
+        2: 'orange',
+        length: 3,
+      };
+      let fruits = [].join.call(arrLikes, ' - '); // meminjam method join untuk melakukan join ke object arrLikes
+      console.log(fruits);
+      // spy decorator
+      function spyDecorator(func, thisArg) {
+        function wrapper(...args) {
+          wrapper.calls.push(args);
+          return func.apply(thisArg ?? this, args);
+        };
+        wrapper.calls = [];
+        return wrapper;
+      }
+      //
+      let sum = function(...numbers) {
+        return numbers.reduce((prevNum, currNum) => prevNum + currNum), 0;
+      }
+      sum = spyDecorator(sum);
+      sum(1,2,3,4);
+      sum(4,3,2,1);
+      sum.calls.forEach(args => console.log('sum calls with arguments: ', args.join(' + ')));
+      // delay decorator
+      function delay(func, ms, thisArg) {
+        return function (...args) {
+          return setTimeout(() => func.apply(thisArg ?? this, args), ms ?? 0);
+        };
+      }
+      function warnMe(warnText) {
+        console.log('WARNING:', warnText);
+      };
+      let warnMeAfter10s = delay(warnMe, 10000)
+      // warnMeAfter10s('you have a dinner tonight with mr. adam'); // muncul setelah 10 detik
+      // warnMeAfter10s('go to home immediately');
+      // debounce decorator (menjalankan func setelah ms pada panggilan terakhir)
+      function debounce(func, ms, thisArg) {
+        let lastTimerId
+        return function(...args) {
+          clearTimeout(lastTimerId);
+          lastTimerId = setTimeout(() => func.apply(thisArg ?? this, args), ms);
+        };
+      }
+      // decorator recall
+      function recall(func, ms, thisArg) {
+        let lastTimerId
+        return function(...args) {
+          clearTimeout(lastTimerId);
+          lastTimerId = setTimeout(() => func.apply(thisArg ?? this, args), ms);
+        return func.apply(thisArg ?? this, args);
+        };
+      }
+      // membuat info mengetik interaktif
+      let lastText = '';
+      // fungsi untuk mengubah info sedang mengetik
+      function setTyping(text) {
+        let typingInfo = document.getElementById('typing-info');
+        if (lastText == text) typingInfo.innerText = 'tidak sedang mengetik'
+        else typingInfo.innerText = 'sedang mengetik';
+        lastText = text;
+      };
+      // fungsi untuk mengirim data
+      function sendData(data) {
+        // logika mengirim data ke API
+        alert('Text yang anda ketik telah dikirim dan sedang diterjemahkan.');
+      }
+      // decorate
+      let debounceSendData = debounce(sendData, 6000); // mengirim data setelah 6 detik tidak mengetik
+      let recallSetTyping = recall(setTyping, 3000); // memanggil kembali fungsi setelah 3 detik tidak dipanggil kembali
+      document.getElementById('input-text').addEventListener('input', (e) => {
+        let textContent = e.target.value;
+        recallSetTyping(textContent);
+        debounceSendData({text: textContent})
+      });
+      // decorator throttle (menjalankan f hanya maksimal sekali per ms)
+      function throttle(func, ms, thisArg) {
+        let lastCall = 0;
+        let lastTimerId;
+        return function wrapper(...args) {
+          let now = Date.now();
+          if (now >= lastCall + ms) {
+            lastCall = now;
+            console.log(`${this}`);
+            func.apply(thisArg ?? this, args)
+          } else {
+            clearTimeout(lastTimerId);
+            lastTimerId = setTimeout(() => wrapper.apply(this, args), now - lastCall);
+          };
+        };
+      }
+      // 
+      let printSomething = throttle((...args) => console.log(...args), 1000);
+      // printSomething('saya alex datang pertama');
+      // setTimeout(() => printSomething('saya alex datang lagi'), 300);
+      // setTimeout(() => printSomething('saya john baru datang'), 300);
+      // setTimeout(() => printSomething('saya david datang terakhir'), 200);
+      let introduceMySelf = throttle(function() {console.log('hi everyone, my name is', this.name);}, 1000);
+      let user1 = {name: 'alexa', introduceMySelf};
+      let user2 = {name: 'jessica', introduceMySelf};
+      let user3 = {name: 'rose', introduceMySelf};
+      user1.introduceMySelf();
+      setTimeout(() => user2.introduceMySelf(), 400);
+      setTimeout(() => user3.introduceMySelf(), 400);
+      // decorator type checking
+      function typeCheck(func, typeArray, thisArg) {
+        return function(...args) {
+          for (let i = 0; i < typeArray.length; i ++) {
+            if (typeArray[i] != typeof(args[i])) throw TypeError(`Expected type "${typeArray[i]}", got type "${typeof(args[i])}" of argument ${i + 1}`);
+          };
+          return func.apply(thisArg ?? this, args);
+        };
+      }
+      // 
+      function power(x, y) {
+        return Array.from(range(y)).reduce((prevNum, currNum) => prevNum * x, 1);
+      }
+      let pow = typeCheck(power, ['number', 'number']);
+      console.log('2 powered by 4 is', pow(2,4));
+      console.log('3 powered by 3 is', pow(3,3));
+      // console.log('4 powered by a is', pow(4,'a')); // TypeError
+    </script>
+  </body>
+</html>
