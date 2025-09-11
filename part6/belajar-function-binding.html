@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar function binding</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // func.bind(context) (mengembalikan fungsi yang telah diatur thisArg nya menjadi context selalu)
+      let user = {
+        name: 'riana',
+        hi() {
+          console.log('Hi', this.name);
+        },
+      };
+      let hi = user.hi; // this menghilang
+      // hi(); // error
+      // kaitkan dengan object user sebagai this
+      let userHi = hi.bind(user);
+      userHi(); // 'hi riana'
+      // partial function (membuat fungsi baru dari sebuah fungsi yang telah ada dengan memberi argument langsung pada parameternya )
+      function mul(x, y) {
+        return x * y;
+      }
+      let double = mul.bind(null, 2); // disebut partially applied atau partial
+      let triple = mul.bind(null, 3);
+      let quintiple = mul.bind(null, 5);
+      console.log('double of 5 is', double(5));
+      console.log('triple of 5 is', triple(5));
+      console.log('quintiple of 5 is', quintiple(5));
+      let splitLines = string => string.split('\n');
+      let text = ['guests list:',
+        '- adam',
+        '- lina',
+        '-rihanna',
+      ].join('\n');
+      let lines = splitLines(text);
+      console.log(JSON.stringify(lines));
+      // partial function (mengembalikan fungsi yang menjalankan fungsi aslinya dengan argument yang di bound tanpa mengganti context nya)
+      function partial(func, ...boundArgs) {
+        return function(...args) {
+          return func.apply(this, [...boundArgs, ...args]);
+        };
+      }
+      function sendMessage(from, to, text) {
+        console.log(`${to}, you got message from ${from}\ntext: ${text}`);
+      }
+      user.sendMessage = partial(sendMessage, user.name);
+      user.sendMessage('anna', 'hello how are you?');
+      user.sendMessage('adam', 'would you to have a dinner with me tonight ?')
+    </script>
+  </body>
+</html>

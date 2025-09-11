@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar arrow function</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // arrow function tidak memiliki this
+      function getThis() {
+        return this;
+      }
+      let getThis2 = () => this;
+      let cart = {
+        totalCost: 1500,
+        item: ['scissor', 'stove', 'fridge',],
+        showItem() {
+          console.log(this.item.join('\n'));
+        },
+        getThis,
+        getThis2,
+      };
+      // 
+      console.log(cart.getThis()); // cart obj
+      console.log(cart.getThis2()); // window obj
+      // juga tidak memiliki arguments
+      function getArguments() {
+        return arguments;
+      }
+      let getArguments2 = () => {
+        return arguments;
+      };
+      console.log(getArguments('apple', 'banana')); // Arguments(2) ['apple', 'banana',...
+      // console.log(getArguments2('apple', 'banana')); // Uncaught ReferenceError: arguments is not defined
+      // berguna pada situasi seperti decorator
+      function deffers(func, delay, useArrowFunc) {
+        return function(...args) {
+          if (useArrowFunc) setTimeout(() => func.apply(this, arguments), delay) // nilai this berasal dari fungsi wrapper
+          else setTimeout(function() {
+        // nilai this diatur secara contextual
+            func.apply(this, args); // this berasal dari fungsi setTimeout disini
+          }, delay)
+        };
+      }
+      cart.showItem = deffers(cart.showItem, 1000, true);
+      cart.showItem2 = deffers(cart.showItem, 1000);
+      cart.showItem();
+      // cart.showItem2(); // Uncaught TypeError: Cannot read properties of undefined (reading 'join')
+    </script>
+  </body>
+</html>
