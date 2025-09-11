@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar object property descriptor</title>
+    <script src="../random.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      function DebitCard(owner, PIN, balance) {
+        Object.defineProperties(this, {
+          ID: {value: random.randint(1e7, 1e8 -1), enumerable: true},
+          owner: {value: owner, enumerable: true, writable: true},
+          PIN: {value: PIN},
+          balance: {value: balance, writable: true, enumerable: true},
+        });
+      }
+      // 
+      let myDebit = new DebitCard('Alexander Graham', 123456, 12e7);
+      for (let [key, value] of Object.entries(myDebit)) {
+        console.log(key, ':', value); // ID, owner, balance
+      };
+      // ID bersifat constant
+      // myDebit.ID = '12345678'; // TypeError: Cannot assign to read only property 'ID' of object '#<DebitCard>'
+      console.log('myDebit.ID descriptor:', JSON.stringify(Object.getOwnPropertyDescriptor(myDebit, 'ID'), null, 2));
+      // mengkloning object beserta descriptor propertynya
+      let copyOfMyDebitCard = Object.defineProperties({}, Object.getOwnPropertyDescriptors(myDebit));
+      console.log(JSON.stringify(Object.getOwnPropertyDescriptors(myDebit)) == JSON.stringify(Object.getOwnPropertyDescriptors(copyOfMyDebitCard))); // true
+      // Object.getOwnPropertyDescriptors(obj) mengambil seluruh key termasuk symbol
+      let mySymbol = Symbol('any symbol');
+      let obj = {
+        anyKey: 'anyValue',
+        [mySymbol]: 'symbolValue',
+      };
+      let copyObj = Object.defineProperties({}, Object.getOwnPropertyDescriptors(obj));
+      console.log(copyObj[mySymbol]); // 'symbolValue'
+      // Object.preventExtension(obj) (mencegah penambahan property baru pada obj)
+      obj.anyKey2 = 'anyValue';
+      Object.preventExtensions(obj); // kini obj tidak dapat diberi property baru
+      Object.isExtensible(obj); // false
+      obj.anyKey = 'nilaiBaru'; // aman
+      delete obj.anyKey2; // masih aman
+      Object.values(Object.getOwnPropertyDescriptors(obj)).every(({configurable}) => configurable); // true
+      // Object.seal(obj) (melarang penambahan/penghapusan property pada obj dan semua property descriptor disetel ke configurable = false)
+      Object.seal(obj); // kini property pada obj tidak dapat dihapus dan descriptornya tidak dapat diatur ke true lagi
+      Object.isSealed(obj); // true
+      obj.anyKey = 'nilaiBaru kedua'; // masih aman karena descriptor writable tidak di set ke false
+      Object.values(Object.getOwnPropertyDescriptors(obj)).every(({configurable}) => ! configurable); // true
+      // Object.freeze(obj) (melarang penambahan, penghapusan, dan pengeditan property pada obj)
+      Object.freeze(obj); // kini obj tidak tersentuh
+      Object.isFrozen(obj); // true
+      // obj.anyKey = 'nilaiBaru ketiga'; // TypeError: Cannot assign to read only property 'anyKey' of object '#<Object>'
+      Object.values(Object.getOwnPropertyDescriptors(obj)).every(({writable}) => ! writable); // true
+    </script>
+  </body>
+</html>
