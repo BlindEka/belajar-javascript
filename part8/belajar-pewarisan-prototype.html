@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar pewarisan prototype</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      let time = {
+        hours: 10,
+        minutes: 30,
+        seconds: 0,
+      };
+      // pewarisan prototype
+      time.__proto__ = Date; // kini objek time mewarisi property dari objek Date
+      console.log('current timestamp:', time.now()); // diambil dari method Date.now()
+      let user = {
+        firstName: 'John',
+        lastName: 'Titor',
+        get fullName() {
+          return this.firstName + ' ' + this.lastName;
+        },
+        set fullName(fullName) {
+          if (typeof(fullName) == 'string') [this.firstName, this.lastName] = fullName.split(' ');
+        },
+        introduce() {
+          console.log('Hi my name is', this.fullName);
+        },
+      };
+      let admin = {
+        firstName: 'adam',
+        lastName: 'Graham',
+        __proto__: user,
+      };
+      // objek aslinya tidak akan terpengaruh oleh __proto__
+      console.log('user fullname:', user.fullName);
+      console.log('admin fullname:', admin.fullName);
+      admin.fullName = 'bruce lee';
+      console.log('user fullname:', user.fullName); // 'John Titor'
+      console.log('admin fullname:', admin.fullName); // 'bruce lee'
+      // this akan selalu mereferensi objek sebelum titik (*obj*.method())
+      user.setLogin = function(state) {
+        this.isLogin = state;
+      };
+      user.setLogin(false);
+      admin.setLogin(true);
+      console.log('user is logged in:', user.isLogin); // false
+      console.log('admin is logged in:', admin.isLogin); // true
+      delete admin.isLogin;
+      console.log('admin isLogin setelah dihapus:', admin.isLogin) // false (nilai diwarisi lagi dari user)
+      // mengecek apakah key bukan property warisan
+      admin.hasOwnProperty('introduce'); // false
+      Object.keys(admin); // mengembalikan hanya property milik sendiri (bukan warisan) = 'firstName', 'lastName'
+      // for loop mengiterasi semua key termasuk warisan
+      let keys = [];
+      for (let key in admin) {
+        keys.push(key);
+      }
+      console.log(JSON.stringify(keys, null, 2)); // key termasuk property key warisan
+      // property yang dihasilkan oleh method induk akan dianggap milik objek itu sendiri
+      user.setProp = function(name, value) {
+        return this[name] = value;
+      };
+      admin.setProp('sex', 'boy');
+      console.log('admin memiliki property "sex" :', admin.hasOwnProperty('sex')); // true
+    </script>
+  </body>
+</html>
