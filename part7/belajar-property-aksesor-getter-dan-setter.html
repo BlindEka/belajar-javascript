@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar property aksesor getter dan setter</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      function Cart(items) {
+        this._items = items?.filter(item => typeof(item?.name) == 'string' && typeof(item?.price) == 'number') ?? [];
+        Object.defineProperties(this, {
+          totalPrice: {
+            get() {
+              return this._items?.reduce((sumPrice, {price: currPrice}) => sumPrice + currPrice, 0);
+            },
+            set(budget) {
+              let items = this._items.sort((a, b) => (a.price < b.price) ? -1 : (a.price > b.price) ? 1 : 0).reverse().slice(); // sort items by price in descending order
+              while ( budget < this.totalPrice && this._items.length) {
+                this._items.pop();
+              }
+              if (! this._items.length && budget > 0) {
+                // jika item menjadi kosong, coba hapus item secara ascending
+                this._items = items.reverse();
+                while ( budget < this.totalPrice && this._items.length) {
+                  items.pop();
+                };
+              };
+            },
+            enumerable: true
+          },
+          items: {
+            get() {
+              return this._items.slice().sort((a, b) => (a.name > b.name) ? 1 : -1); // sort by name in ascending order
+            },
+            set(items) {
+              if (Array.isArray(items)) this._items = items?.filter(item => typeof(item?.name) == 'string' && typeof(item?.price) == 'number') ?? [];
+            },
+            enumerable: true,
+          }
+        });
+        this.addNewItem = ({name, price}) => this._items.push({name, price});
+        this.showItems = () => console.log('All Items:\n' + (this._items.map(({name, price}) => ` - ${name} => Rp.${price}`).join('\n') || 'No item.') + '\nTotal price:', this.totalPrice);
+      }
+      let items = [
+        {name: 'kipas angin', price: 35e4},
+        {name: 'Rice cooker', price: 25e4},
+        {name: 'Kompor listrik', price: 125e4},
+      ];
+      let cart = new Cart(items);
+      // mendapatkan nilai totalPrice secara dinamis
+      console.log('total price for items in cart:', cart.totalPrice);
+      // melakukan sesuatu saat sebuah nilai property di atur
+      cart.totalPrice = 2e6; // fungsi setter di panggil (disini mengatur harga items tidak melebihi budget yang diberikan)
+      console.log('total price for items in cart:', cart.totalPrice);
+      // descriptor untuk property aksesor menggunakan key get dan set alih2 menggunakan value
+      let user = {
+        firstName: 'Rudi',
+        middleName: '',
+        lastName: 'cahyono',
+      };
+      Object.defineProperty(user, 'fullName', {
+        get() {
+          return [
+            this.firstName ?? '',
+            this.middleName ?? '',
+            this.lastName ?? '',
+          ].join(' ');
+        },
+        set(value) {
+          if (typeof(value) == 'string') {
+            let [firstName, middleName, ...lastName] = value.split(' ');
+            [this.firstName, this.middleName, this.lastName] = [
+              firstName ?? '',
+              (lastName.length) ? middleName : '',
+              (lastName.length) ? lastName.join(' ') : middleName,
+            ];
+          };
+        },
+        enumerable: true,
+        configurable: false,
+      });
+      console.log('fullname:', user.fullName); // Rudi Cahyono
+      user.fullName = 'Budi rahyadi Setiawan';
+      Object.entries(user).forEach(([key, value]) => console.log(key, ':', value));
+    </script>
+  </body>
+</html>
