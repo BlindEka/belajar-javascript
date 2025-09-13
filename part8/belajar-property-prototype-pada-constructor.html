@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar property prototype pada fungsi constructor</title>
+    <script src="../random.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      function Table(tableData) {
+        this._tableData = tableData?.filter(row => (Array.isArray(row)) ? true : null) ?? [];
+        this.fillEmptyColumns();
+      }
+      // object untuk prototype constructor
+      Table.prototype = {
+        constructor: Table,
+        getColumn(rowNum, colNum) {
+          if (
+            isFinite(rowNum) && isFinite(colNum) &&
+            rowNum <= this.rowLength && colNum <= this.columnLength) return this._tableData[rowNum][colNum];
+          return null;
+        },
+        updateColumn(rowNum, colNum, newValue) {
+          if (
+            isFinite(rowNum) && isFinite(colNum) &&
+            rowNum < this.rowLength && colNum < this.columnLength) return this._tableData[rowNum][colNum] = newValue;
+          return null;
+        },
+        getRow(rowNum) {
+          if (isFinite(rowNum) && rowNum >= 0 && rowNum < this.rowLength) return this._tableData[rowNum].slice();
+          return null;
+        },
+        updateRow(rowNum, newRow) {
+          if (
+            isFinite(rowNum) && Array.isArray(newRow) &&
+            rowNum >= 0 && rowNum < this.rowLength) {
+              newRow = this.fillEmptyColumn(newRow);
+              return this._tableData[rowNum] = newRow;
+            };
+          return null;
+        },
+        deleteRow(rowNum) {
+          if (isFinite(rowNum) && rowNum >= 0 && rowNum < this.rowLength) return this._tableData.splice(rowNum, 1);
+          return null;
+        },
+        fillEmptyColumn(row) {
+          let columnLength = this.columnLength;
+          while (row.length < columnLength) {
+            row.push(NaN);
+          };
+          if (! row.includes(undefined) && ! row.includes(null)) return row;
+          for (let colNum = 0; colNum < columnLength; colNum ++) {
+            if (typeof(row[colNum]) == 'undefined' || typeof(row[colNum]) == 'null') row[colNum] = NaN;
+          };
+          return row;
+        },
+        fillEmptyColumns() {
+          for (let rowNum = 0; rowNum < this.rowLength; rowNum ++) {
+            if (typeof(this._tableData[rowNum]) == 'undefined') this._tableData[rowNum] = this.fillEmptyColumn([])
+            else this.fillEmptyColumn(this._tableData[rowNum]);
+          }
+        },
+        get columnLength() {
+          return this._tableData.reduce((prevLength, row) => (row.length > prevLength) ? row.length : prevLength, 0);
+        },
+        set columnLength(colNum) {
+          if (isFinite(colNum) && colNum > 0) {
+            this._tableData.forEach(row => row.length = colNum);
+            this.fillEmptyColumns();
+          }
+        },
+        get rowLength() {
+          return this._tableData.length;
+        },
+        set rowLength(rowNum) {
+          if (isFinite(rowNum) && rowNum >= 0) {
+            this._tableData.length = rowNum;
+            this.fillEmptyColumns();
+          };
+        },
+        getMaxStrLength(colNum) {
+          return (colNum < this.columnLength) ? this._tableData.reduce((prevLength, row) => (String(row[colNum]).length > prevLength) ? String(row[colNum]).length : prevLength, 0) : null;
+        },
+        toString() {
+          let stringifiedRows = [];
+          for (let rowNum = 0; rowNum < this.rowLength; rowNum ++) {
+            let stringifiedRow = [];
+            for (let colNum = 0; colNum < this.columnLength; colNum ++) {
+              let colStr = String(this.getColumn(rowNum, colNum));
+              let padLength = this.getMaxStrLength(colNum) - colStr.length + 2;
+              stringifiedRow.push(colStr.padStart(Math.floor(padLength / 2) + colStr.length).padEnd(padLength + colStr.length));
+            };
+            stringifiedRows.push('|' + stringifiedRow.join('|') + '|');
+          };
+          return stringifiedRows.join('\n');
+        },
+        toJSON() {
+          return this._tableData.slice();
+        },
+        showTable() {
+          console.log('Table content:\n' + this.toString());
+        }
+      };
+      let tableData = [];
+      for (let row = 0; row < 6; row ++) {
+        tableData.push([
+          random.randint(1,10),
+          random.randint(1,10),
+          random.randint(1,10),
+        ]);
+      };
+      // sekarang setiap object yang dibuat oleh constructor Table akan mewarisi property dan method dari prototypenya
+      let myTable = new Table(tableData);
+      myTable.rowLength = 7;
+      myTable.showTable(); // berasal dari prototype nya
+    </script>
+  </body>
+</html>
