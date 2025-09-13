@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar syntax class</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // membuat class
+      class User {
+        constructor(fullName, birthday, address) {
+          fullName = fullName ?? 'Anonymous';
+          let [firstName, middleName, ...lastName] = fullName.split(' ');
+          if (! lastName.length) this.name = {firstName, middleName: '', lastName: middleName}
+          else this.name = {firstName, middleName, lastName: lastName.join(' ')};
+          this._birthday = (birthday) ? new Date(+birthday) : new Date(2000, 0, 1);
+          this.address = address ?? 'Blank address';
+        }
+        get fullName() {
+          return [this.name.firstName, this.name.middleName, this.name.lastName].join(' ');
+        }
+        get age() {
+          let now = new Date();
+          return (! this._birthday) ? null : (now.getMonth() > this._birthday.getMonth() || now.getMonth() == this._birthday.getMonth() && now.getDate() >= this._birthday.getDate()) ? now.getFullYear() - this._birthday.getFullYear() + 1 : now.getFullYear() - this._birthday.getFullYear();
+        }
+        get birthday() {
+          return (this._birthday) ? new Date(+this._birthday) : null;
+        }
+        set birthday(birthday) {
+          if (birthday?.getFullYear() && birthday.getMonth() && birthday.getDate()) this._birthday = new Date(+birthday);
+        }
+        ['say' + 'Hi']() { // menulis nama method secara dinamis
+          console.log('Hi', this.fullName);
+        }
+        // method yang aman di context manapun
+        getDaysToBirthday = () => {
+          let totalDays = 0;
+          let now = new Date();
+          let birthday = new Date(this.birthday.setDate(this.birthday.getDate() - 1)); // this selalu mereferensi secara langsung bukan contextual
+          let [birthdayMonth, birthdayDate] = [birthday.getMonth(), birthday.getDate()];
+          while (now.getMonth() > birthdayMonth || now.getMonth() < birthdayMonth || now.getDate() != birthdayDate) {
+            now.setDate(now.getDate() + 1);
+            totalDays ++;
+          };
+          return totalDays;
+        }
+      }
+      // membuat instance
+      let adam = new User('Adam Abraham Lincoln', new Date(2000, 21, 2));
+      console.log(`name: ${adam.fullName}\nage: ${adam.age}\naddress: ${adam.address}\nDays to birthday: ${adam.getDaysToBirthday()}`);
+      // class User tidak bisa dijalankan tanpa keyword new
+      // let walter = User('Walter lincoln', new Date()); // TypeError: Class constructor User cannot be invoked without 'new'
+      // class expression
+      let Money = class {
+        isLiquid = true; // menjadi property pada objek yang akan dibuat
+        constructor(symbol, value) {
+          this.symbol = symbol;
+          this.value = value;
+        }
+        toString() {
+          return `${this.symbol}${this.value}`;
+        }
+        valueOf() {
+          return this.value;
+        }
+      }
+      let dollar = new Money('$', 1000);
+      console.log('My money:', dollar.toString()); // '$1000'
+      dollar.isLiquid; // true
+      // method yang didefinisikan di class tersimpan pada prototype nya
+      console.log(typeof User); // function
+      console.log(User.prototype.sayHi);
+      // namun tidak dengan property yang diatur di class field
+      console.log(Money.prototype.isLiquid); // undefined
+      // 
+    </script>
+  </body>
+</html>
