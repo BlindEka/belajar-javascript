@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar method prototype pada objek bawaan "Object"</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      let human = {
+        head: {
+          eye: 2,
+          noise: 1,
+          mouth: 1,
+          ears: 2
+        },
+        body: {
+          hands: 2,
+          leg: 2
+        },
+      };
+      // Object.create(prototype, descriptors) (membuat objek baru dengan __proto__ = prototype dan mendefinisikan descriptors optional pada objek tersebut)
+      let demiHuman = Object.create(human, {
+        tail: {
+          value: {length: '1m', count: 1},
+          enumerable: true
+        }
+      });
+      demiHuman.head.eye;// 2
+      demiHuman.tail.length; // '1m'
+      // Object.getPrototypeOf(obj) (mendapatkan __proto__ dari sebuah objek)
+      Object.getPrototypeOf(demiHuman) == human; // true
+      // Object.setPrototypeOf(obj, prototype) (mengatur obj.__proto__ menjadi prototype)
+      // Object.setPrototypeOf(human, demiHuman) // error prototype tidak bisa memutar
+      Object.setPrototypeOf(demiHuman, {}); // mengubah __proto__ ke objek biasa
+      demiHuman.head; // undefined
+      // menyalin objek
+      let vector = [23,42,56];
+      let copyOfVector = Object.create(Object.getPrototypeOf(vector), Object.getOwnPropertyDescriptors(vector));
+      copyOfVector.join(', ') == vector.join(', '); // true
+      // membuat "very plain object"
+      let dict = Object.create(null, {
+        toString: {
+          value() {
+            return String(Object.keys(this));
+          },
+        }
+      });
+      dict.apple = 'apel';
+      dict.__proto__ = 'nothing'; // __proto__ bukanlah getter / setter untuk object[[prototype]] lagi disini
+      dict.pineapple = 'nanas';
+      for (let key in dict) {
+        console.log(key); // apple, __proto__, pineapple
+      };
+      console.log(String(dict)); // apple,__proto__,pineapple
+    </script>
+  </body>
+</html>
