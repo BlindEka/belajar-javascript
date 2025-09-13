@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar prototype pada objek bawaan</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // semua object bawaan memiliki hierarki prototype ke Object
+      // hirarki prototype array
+      let numbers = [1, 2, 3];
+      numbers.__proto__ == Array.prototype; // true
+      Array.prototype.__proto__ == Object.prototype; // true
+      Object.prototype == null; // berakhir pada null
+      // meminjam method
+      let fruits = {
+        0: 'apple',
+        1: 'banana',
+        2: 'orange',
+        3: 'grape',
+        length: 4
+      };
+      fruits.join = Array.prototype.join;
+      console.log(fruits.join(' - ')); // 'apple - banana - ...'
+      // contoh polyfilling
+      if (! ''.capitalize) String.prototype.capitalize = function capitalize() {
+        return this.slice(0, 1).toUpperCase() + this.slice(1);
+      };
+      let text = ['me', 'at', 'the', 'zoo'];
+      console.log(text.map(str => str.capitalize()).join(' ')); // 'Me At The Zoo'
+      // memodifikasi prototype asli
+      Function.prototype.defers = function(ms, ...args) {
+        setTimeout(this, ms, ...args);
+      };
+      function helloWorld() {
+        console.log('Hello world');
+      };
+      helloWorld.defers(3000); // 'hello world' after 3 seconds
+      // menambah fungsi decorator
+      Function.prototype.decorateDefers = function(ms) {
+        let func = this;
+        return function() {
+          setTimeout(() => func.apply(this, arguments), ms);
+        };
+      };
+      helloWorld.decorateDefers(5000)(); // 'hello world' setelah 5 detik dijalankan dengan fungsi wrapper
+      // bekerja juga dengan method
+      let user = {
+        name: 'sam smith'.capitalize(),
+        sayHi(name) {
+          console.log('Hi there, my name is', name ?? this.name);
+        }
+      };
+      user.sayHi.defers(1000, 'abraham'); // dipanggil setelah 1 detik
+      user.sayHi = user.sayHi.decorateDefers(2000);
+      user.sayHi();
+      user.sayHi('walter');
+    </script>
+  </body>
+</html>
