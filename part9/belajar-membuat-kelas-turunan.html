@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar membuat kelas turunan</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // kelas induk
+      class Orang {
+        constructor(name) {
+          this.name = name;
+        }
+        introduce() {
+          console.log('Halo nama saya', this.name);
+        }
+        getDayPhase() {
+          let now = new Date();
+          let [hours, minutes] = [now.getHours(), now.getMinutes()];
+          return (hours <= 9 && minutes <= 59) ? 'pagi' : (hours <= 13 && minutes <= 59) ? 'siang' : (hours <= 17 && minutes <= 59) ? 'sore' : 'malam';
+        }
+      }
+      // kelas turunan
+      class Siswa extends Orang {
+        value = 456;
+        constructor(name, type) {
+          // memanggil constructor kelas induk dengan keyword super
+          // kelas turunan harus memanggil super constructor sebelum bisa mengakses nilai this
+          // this.any = 100; // ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor
+          super(name);
+          this.type = type;
+        }
+        introduce() {
+          // menggunakan super kembali untuk memanggil method kelas induk
+          super.introduce();
+          console.log('Saya seorang siswa', this.type);
+        }
+        // arrow function tidak memiliki super
+        greet(ms=0) {
+          setTimeout(() => console.log('Selamat', super.getDayPhase()), ms); // super secara langsung mereferensi ke super pada fungsi greet
+          // setTimeout(function() {console.log('Selamat', super.getDayPhase())}, ms); // SyntaxError: 'super' keyword unexpected here.
+        }
+      }
+      // kelas turunan yang tidak menggunakan constructor kelas induknya
+      // membuat instance dari kelas induk dan turunan
+      let andi = new Orang('Andi');
+      let budi = new Siswa('Budi', 'SMA');
+      andi.introduce(); // 'Halo nama saya andi'
+      budi.introduce(); // 'Halo nama saya budi', 'Saya seorang siswa SMA'
+      // perilaku class field
+      // class field dinisialisasi sebelum constructor untuk kelas induk
+      // dan setelah super(...args) untuk kelas turunan
+      class Induk {
+        // dinisialisasi dan disimpan sbg property 'name' di
+        // objek this yang dimasukan saat keyword 'new'
+        // diterapkan pada class ini
+        name = 'kelas induk' 
+        constructor() {
+          console.log('halo dari', this.name);
+        }
+      }
+      // kelas turunan 1
+      class Turunan extends Induk {
+        name = 'kelas turunan 1'
+        constructor() {
+          super(); // halo dari kelas induk
+          console.log('halo setelah super dari', this.name);
+        }
+      }
+      // kelas turunan 2
+      class Turunan2 extends Turunan {
+        name = 'kelas turunan 2'
+        constructor() {
+          super(); // halo dari kelas induk, halo setelah super dari kelas turunan 1
+          console.log('halo setelah super dari', this.name);
+        }
+      }
+      // inisialisasi
+      new Induk(); // halo dari kelas induk
+      new Turunan(); // halo dari kelas induk, halo setelah super dari kelas turunan 1
+      new Turunan2(); // halo dari kelas induk, halo setelah super dari kelas turunan 1, halo setelah super dari kelas turunan 2
+      // berbeda dengan method / getter / setter yang akan disimpan di Class.prototype
+      class Induk2 {
+        get name() {return 'Induk2'} // disimpan di objek Induk2.prototype
+        constructor() {
+          console.log('halo dari kelas', this.name); // this.name diambil dari KelasIni.prototype
+        }
+      }
+      class turunan3 extends Induk2 {
+        get name() {return 'Turunan3'} // disimpan di Turunan3.prototype
+      }
+      new Induk2(); // halo dari kelas Induk2
+      new turunan3(); // halo dari kelas Turunan3
+      // method kelas memiliki property internal [[[home]]] Object untuk penggunaan super
+      let hewanDarat = {
+        // hewanDarat.sayHi[[home]] = hewanDarat
+        sayHi() {
+          console.log('Halo dari hewan darat');
+        }
+      };
+      let kucing = {
+        __proto__: hewanDarat,
+        // kucing.sayHi[[home]] = kucing
+        sayHi() {
+          super.sayHi(); // super mengakses [[home]].__proto__ untuk mendapatkan method induk
+        }
+      }
+      let hewanLaut = {
+        sayHi() {
+          console.log('halo dari hewan air');
+        }
+      };
+      let ikan = {
+        __proto__: hewanLaut,
+        sayHi: kucing.sayHi,
+      };
+      // karena ikan.sayHi diambil dari kucing.sayHi yang mana [[home]] nya
+      // adalah kucing, super akan mengarah tetap ke hewanDarat
+      // bukan hewanAir meskipun ikan turunan hewanAir
+      ikan.sayHi(); // halo dari hewan darat
+    </script>
+  </body>
+</html>
