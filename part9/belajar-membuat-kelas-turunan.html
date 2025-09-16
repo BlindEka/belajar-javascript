@@ -126,6 +126,31 @@
       // adalah kucing, super akan mengarah tetap ke hewanDarat
       // bukan hewanAir meskipun ikan turunan hewanAir
       ikan.sayHi(); // halo dari hewan darat
+      // membuat kelas turunan dari objek bawaan
+      class ArrayV2 extends Array {
+        // method bawaan menggunakan ini sebagai `constructor`
+        // static get [Symbol.species]() {return Array;} // gunakan ini agar method seperti map yang menghasilkan array baru menggunakan constructor Array native
+        get native() {return Array.from(this);}
+        multiply(array, depth) {
+          if (this.flat(depth).length != array.flat(depth).length) return null;
+          if (depth > 0) return this.map((subArray, index) => this.multiply.apply(subArray, [array[index], depth - 1]));
+          return this.map((num, index) => num * array[index]);
+        }
+        sum(array, depth) {
+          if (this.flat(depth).length != array.flat(depth).length) return null;
+          if (depth > 0) return this.map((subArray, index) => this.sum.apply(subArray, [array[index], depth - 1]));
+          return this.map((num, index) => num + array[index]);
+        }
+      }
+      // 
+      let myArray = ArrayV2.from([[1,2,3], [4,5,6], [7,8,9]]); // static method dari objek native Array bekerja
+      let multipliedArray = myArray.multiply(myArray, 1);
+      let sumArray = myArray.sum(myArray, 1);
+      for (let [k, v] of Object.entries({multipliedArray, sumArray})) {
+        console.log(`${k}:\n[\n [${v.join('],\n [')}] \n]`);
+      };
+      // method yang menghasilkan array baru juga mengembalikan kelas yang sama dari constructor nya
+      console.log('multipliedArray instanceof ArrayV2:', multipliedArray instanceof ArrayV2); //true
     </script>
   </body>
 </html>

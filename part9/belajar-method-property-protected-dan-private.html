@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar property dan method protected dan private pada kelas</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      class Printer {
+        // private property harus didefinisikan di class field
+        #ink
+        // tidak bentrok dengan public property / method
+        get ink() {
+          return Object.assign({}, this.#ink);
+        }
+        constructor(paper, ink) {
+          // mengatur paper menjadi property protected
+          this._paper = paper; // property ditujukan hanya diakses oleh kelas dan turunan nya
+          // mengatur property ink menjadi private
+          this.#ink = ink; // property hanya boleh diakses oleh kelas ini
+        }
+        #isInkEmpty() {
+          return this.#ink.volume <= 0;
+        }
+        isInkEmpty() {
+          console.log('mmengecek tinta melalui public method');
+          return this.#isInkEmpty();
+        }
+        // protected method hanya ditujukan dipakai secara internal
+        _replaceInk({volume}) {
+          this.#ink = {volume};
+        }
+        print(text) {
+          if (this._paper && ! this.#isInkEmpty()) {
+            this._paper -= 1;
+            this.#ink.volume -= 1;
+            console.log(text);
+          } else console.log('paper or ink is empty');
+        }
+        // tidak bisa mengakses property private dengan kurung siku
+        getInk() {
+          return this['#ink'];
+        }
+      }
+      let myPrinter = new Printer(10, {volume: 100});
+      myPrinter.print('saya sedang mempelajari javascript');
+      // myPrinter.#ink; // error
+      console.log(myPrinter['#ink']); // undefined
+      myPrinter.getInk(); // undefined
+      console.log(myPrinter._paper); // 9
+      // private method dan property tidak diwariskan
+      class MiniPrinter extends Printer {
+        get ink() {
+          // return Object.assign({}, this.#ink); // error
+        }
+        get isInkEmpty() {
+          // return this.#isInkEmpty(); // error
+        }
+      }
+    </script>
+  </body>
+</html>
