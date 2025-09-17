@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar operator instanceof, Object.prototypeOf, dan obj.toString.call</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // obj instanceof class (mengecek apakah obj merupakan instance dari kelas Class)
+      let arr = [];
+      arr instanceof Array; // true
+      arr instanceof Object; // true, karena Array kelas turunan dari Object
+      // operator instanceof tidak memedulikan fungsi constructornya, selama obj.__proto__ === cls.prototype itu menghasilkan true
+      function A() {};
+      function B() {};
+      A.prototype = B.prototype = {}; // prototype disamakan
+      new A() instanceof B; // true karena a.__proto__ === B.prototype
+      // jika class memiliki static method Symbol.hasInstance, maka itu dipanggil saat operator instanceof digunakan
+      class User {
+        static [Symbol.hasInstance](obj) {
+          if (obj.name && obj.age) return true; // merupakan instance User jika memiliki property name dan age
+          return false;
+        }
+      }
+      let obj = {name: 'alex', age: 20};
+      console.log('obj instanceof User:', obj instanceof User); // True
+      // fungsi yang meniru operator instanceof
+      function instanceOf(instance, cls) {
+        if (instance === null || typeof(instance) != 'object' || typeof(cls) != 'function') return null;
+        if (cls[Symbol.hasInstance]) return cls[Symbol.hasInstance](instance);
+        if (instance.__proto__ !== cls.prototype && instance.__proto__) return instanceOf(instance.__proto__, cls);
+        return instance.__proto__ === cls.prototype;
+      }
+      class Array2 extends Array {};
+      class Array3 extends Array2 {};
+      let arr2 = new Array2();
+      let arr3 = new Array3();
+      console.log('arr3 instanceof Array3:', instanceOf(arr3, Array3)); // true
+      console.log('arr3 instanceof Array2:', instanceOf(arr3, Array2)); // true
+      console.log('arr2 instanceof Object:', instanceOf(arr2, Object)); // true
+      // objA.isPrototypeOf(objB) (mengecek apakah objA ada dalam rantai prototype objB)
+      // a instanceof B == B.prototype.isPrototypeOf(a)
+      console.log('Object.prototype.isPrototypeOf(arr2)', Object.prototype.isPrototypeOf(arr2)); // true
+      // Object.prototype.toString untuk tipe
+      function typeOf(any) {
+        return Object.prototype.toString.call(any).slice(8, -1).toLowerCase();
+      }
+      console.log('typeof null:', typeof null); // object
+      console.log('typeOf(null):', typeOf(null)); // null
+      // Symbol.toStringTag
+      console.log('typeOf(obj):', typeOf(obj)); // object
+      console.log('Object.prototype.toString.call(obj):', Object.prototype.toString.call(obj)); // [object Object]
+      obj[Symbol.toStringTag] = 'User';
+      console.log('setelah diberi Symbol.toStringTag, typeOf(obj):', typeOf(obj)); // user
+      console.log('setelah diberi Symbol.toStringTag, Object.prototype.toString.call(obj):', Object.prototype.toString.call(obj)); // [object User]
+      console.log('{}.toString.call(obj) === Object.prototype.toString.call(obj):', {}.toString.call(obj) === Object.prototype.toString.call(obj)); // true (sama saja karena objekBiasa.__proto__ === Object.prototype )
+    </script>
+  </body>
+</html>
