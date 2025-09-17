@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar membuat kelas turunan mixin</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      class A {
+        methodA() {
+          console.log('ini method dari kelas A');
+        }
+      }
+      class C extends A {
+        methodC() {
+          console.log('ini method dari kelas C');
+        }
+      }
+      // object untuk di mixin
+      let b = {
+        methodB() {
+          console.log('ini method B')
+        }
+      };
+      let D = {
+        methodB() {
+          super.methodB();
+        },
+        methodD() {
+          console.log('ini method D')
+        }
+      };
+      Object.setPrototypeOf(D, b);
+      // mixin kelas C dengan kelas D agar dapat menggunakan method dari kelas D
+      Object.assign(C.prototype, D);
+      let instanceC = new C();
+      instanceC.methodA(); // method dari induk kelas C (A)
+      instanceC.methodB(); // method dari prototype D (B) yang diambil dengan super (dan akan mereferensi ke [[home]] sehingga tidak salah alamat ke induk kelas C)
+      instanceC.methodC(); // method asli dari kelas C
+      instanceC.methodD(); // method asli dari objek D
+    </script>
+  </body>
+</html>
