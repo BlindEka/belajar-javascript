@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>testing module table.js</title>
+    <script src="./module/random.js"></script>
+    <script src="./module/table.js"></script>
+    <script src="../requirements/mocha/mocha.min.js"></script>
+    <script src="../requirements/chai/chai.min.js"></script>
+    <link rel="stylesheet" href="../requirements/mocha/mocha.min.css"/>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+    <script>
+      mocha.setup('bdd'); // minimal setup
+      let assert = chai.assert;
+    </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script>
+      "use strict";
+      let entries = [];
+      for (let colNum = 0; colNum < 5; colNum ++) {
+        entries.push(['column' + colNum, [
+          random.randint(1,100),
+          random.randint(1,100),
+          random.randint(1,100),
+          random.randint(1,100),
+          random.randint(1,100),
+        ]]);
+      };
+      let rows = entries.map(([, row]) => row);
+      rows.unshift(entries.map(([columnName]) => columnName));
+      let csvStr = rows.map(row => row.join(',')).join('\n'),
+      tsvStr = rows.map(row => row.join('\t')).join('\n'),
+      myTb = new Table(entries);
+    </script>
+    <script>
+      describe('testing Table Object', () => {
+        describe('testing Table.from.... method', () => {
+          describe('mengetes nilai awal dengan nilai akhir harus sama', () => {
+            // fromArray
+            it('JSON.stringify(Table.fromArray(rows).toArray()) == JSON.stringify(rows)', () => {
+              assert.equal(JSON.stringify(Table.fromArray(rows).toArray()), JSON.stringify(rows));
+            });
+            // fromCsv
+            it('Table.fromCsv(csvStr).toCsv() == csvStr', () => {
+              assert.equal(Table.fromCsv(csvStr).toCsv(), csvStr);
+            });
+            // fromTsv
+            it('Table.fromCsv(tsvStr).toTsv() == tsvStr', () => {
+              assert.equal(Table.fromTsv(tsvStr).toTsv(), tsvStr);
+            });
+          });
+          // 
+        });
+        describe('testing autosize table, getter dan setter row dan column length', () => {
+          it('menambah/mengurangi row length', () => {
+            const firstRowLength = myTb.rowLength;
+            myTb.rowLength = firstRowLength + 2;
+            assert.equal(myTb.rowLength, firstRowLength + 2);
+            myTb.rowLength --;
+            assert.equal(myTb.rowLength, firstRowLength + 1);
+          })
+        })
+        describe('testing method dan fitur untuk mengakses nilai tabel', () => {
+          it('testing getField method', () => {
+            assert.strictEqual(myTb.getField(7,7), undefined);
+            assert.isNaN(myTb.getField(5, 1));
+          });
+          it('testing getColumn method', () => {
+            assert.equal(JSON.stringify(myTb.getColumn('column1').toArray()), JSON.stringify(myTb['column1'].toArray()));
+          })
+          it('testing mengakses field melalui [rowNum.colNum]', () => {
+            assert.equal(myTb['0.0'], entries[0][1][0]); // 0.0 akan otomatis diubah menjadi number 0, maka harus diapit tanda petik
+            assert.isNaN(myTb[5.3]);
+          })
+        })
+      });
+    </script>
+    <script>
+      mocha.run();
+    </script>
+  </body>
+</html>
