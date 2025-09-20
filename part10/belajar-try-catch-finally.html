@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar syntax try, catch & finally untuk error handling</title>
+    <script src="../latihan/module/random.js"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      let users = [];
+      for (let i = 0; i < 10; i ++) {
+        let user = {age: random.randint(18,29)};
+        if (random.randbool()) user.name = 'user' + i;
+        users.push(JSON.stringify(user));
+      };
+      // penanganan error secara global dengan window.onerror (untuk lingkungan browser)
+      window.onerror = function(message, url, line, col, error) {
+        console.log(`Terjadi kesalahan fatal:\npesan: ${message}\nurl: ${url}\nbaris: ${line}\nkolom: ${col}\nerror: ${error}`);
+      };
+      function processData(json) {
+        try {
+          let user = JSON.parse(json);
+          if (! user.name) throw new TypeError('user tidak memiliki nama');
+          return user;
+        }
+        catch (err) {
+          // tangkap error dan tangani disini
+          console.log('terjadi error saat memproses data');
+          throw err;
+        }
+        finally {
+          // blok finally selalu dijalankan terlepas dari adanya error
+          // console.log('membersihkan resource...');
+        };
+      }
+      // 
+      for (let user of users) {
+        try {
+          let data = processData(user);
+          console.log('Data diproses untuk user:', data.name);
+        }
+        catch (err) {
+          console.log(`terjadi kesalahan:\npesan: ${err.message}\nnama error: ${err.name}\ncall stack: ${err.stack ?? 'browser tidak mendukung'}`);
+        };
+      };;
+      // memicu window.onerror
+      throw new SyntaxError('Ini error untuk memicu window.onerror');
+    </script>
+  </body>
+</html>
