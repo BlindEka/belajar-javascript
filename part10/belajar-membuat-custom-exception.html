@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <script src="../latihan/module/random.js"></script>
+    <title>belajar membuat custom exception</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // buat custom exception dari kelas Error sbg induk
+      class MatrixError extends Error {
+        // base exception
+        name = this.constructor.name // agar tidak perlu menerapkan nama baru untuk setiap kelas turunan
+      }
+      class ValidationError extends MatrixError {
+        // dilemparkan saat gagal memvalidasi
+        constructor(message) {
+          super('Validation failed: '+message);
+        }
+      }
+      class InvalidType extends ValidationError {
+        // dilempar saat item tidak memiliki tipe yang diharapkan
+        constructor(message, value, expectedType) {
+          super(message + ` Expected '${expectedType}' type, got '${typeof value}' type.`);
+          this.value = value;
+          this.expectedType = expectedType;
+        }
+      }
+      class InvalidLength extends ValidationError {
+        constructor(message, length, expectedLength) {
+          super(message + ` Expected length ${expectedLength} got length ${length}`);
+          this.expectedLength = expectedLength;
+          this.length = length;
+        }
+      }
+      // objek yang akan memakai error
+      class Matrix extends Array {
+        constructor(...rows) {
+          super(...rows);
+          this._validate();
+        }
+        _validate() {
+          this._validateItem();
+          this._validateRowLength();
+        }
+        _validateItem() {
+          for (let rowIndex = 0; rowIndex < this.length; rowIndex ++) {
+            let item = this[rowIndex];
+            if (! Array.isArray(item)) throw new InvalidType(`Item at row ${rowIndex} is not an Array`, item, 'Array');
+            item.forEach((num, colIndex) => {if (! typeof num == 'number') throw new InvalidType(`Invalid value Item at row ${rowIndex} column ${colIndex}`)})
+          };
+        }
+        _validateRowLength() {
+          this.reduce((prevLength, {length: currLength}, index) => {
+            if (prevLength != currLength) throw new InvalidLength(`Column length doesn't match`, currLength, prevLength);
+            return currLength;
+          }, this[0]?.length ?? 0);
+        }
+        hasSameLength = matrix => this.flat(1).length == matrix.flat(1).length && this.length == matrix.length
+        doOperation(callbackFunc, matrix) {
+          this._validate();
+          if (! this.hasSameLength(matrix)) throw new InvalidLength(`Matrix item length doesn't match.`, matrix.flat(1).length, this.flat(1).length);
+          return new Matrix(...this.map((row, rowIndex) => row.map((num, numIndex)=> callbackFunc(num, matrix[rowIndex]?.[numIndex]))));
+        }
+        multiply = matrix => this.doOperation((num1, num2) => num1 * num2, matrix)
+        divide = matrix => this.doOperation((num1, num2) => num1 / num2, matrix)
+        add = matrix => this.doOperation((num1, num2) => num1 + num2, matrix)
+        subTract = matrix => this.doOperation((num1, num2) => num1 - num2, matrix)
+        pow = matrix => this.doOperation((num1, num2) => num1 ** num2, matrix)
+        mod = matrix => this.doOperation((num1, num2) => num1 % num2, matrix)
+        static [Symbol.species] = Array
+      }
+      let matrix = [];
+      for (let i = 0; i < 4; i ++) {
+        const m = [];
+        for (let r = 0; r < 4; r ++) {
+          m.push([
+            random.randint(1,100),
+            random.randint(1,100),
+            random.randint(1,100),
+            random.randint(1,100),
+          ]);
+        };
+        matrix.push(m);
+      };
+      // exception wrapping
+      class OperationError extends Error {
+        constructor(message, origin) {
+          super(message);
+          this.origin = origin;
+        }
+      }
+      function mulMatrix(matrixA, matrixB) {
+        try {
+          if (random.randbool(0.3)) throw new SyntaxError('This error randomly generated')
+          return matrixA.multiply(matrixB)
+        }
+        catch (error) {
+          console.log('Terjadi error saat melakukan operasi:');
+          switch(true) {
+            case error instanceof InvalidLength:
+              console.log('kedua matrix mungkin tidak memiliki baris atau kolom yang sama, silahkan berikan matrix yang cocok')
+              console.log(error);
+              break;
+            case error instanceof InvalidType:
+              console.log('item matrix memiliki tipe yang tidak didukung');
+              console.log(error);
+              break;
+            default:
+              // lempar error yang lebih umum
+              throw new MatrixError('Something has occurred: ' + error.message);
+          };
+          // melempar exception wrapper sebagai ganti error yang spesifik
+          throw new OperationError('Something went wrong during operation: ' + error.message, error);
+        }
+      }
+      let matrixA = new Matrix(...matrix[0]),
+      matrixB = new Matrix(...matrix[1]);
+      let badMatrix = [1, 2, 3, [4,6,5]]; // pemicu error
+      let result = matrixA.multiply(matrixB);
+      try {
+        let mx = [matrixA, matrix[4], badMatrix, console, window, matrixB, matrix[3], matrix[2], [1,2,3,4,5,6], 'ayam', 'pisang'];
+        let operations = ['multiply', 'add', 'subTract', 'divide', 'pow', 'mod'];
+        for (let m of matrix) {
+          try {
+            const operation = random.choice(operations);
+            console.log('melakukan operasi:', operation);
+            m = new Matrix(...m);
+            let result = m[operation](random.choice(mx));
+            console.log('hasil: ' + JSON.stringify(result));
+          }
+          catch (error) {
+            // handle error
+            switch(true) {
+              case error instanceof MatrixError:
+                console.log('Error matrix terjadi: ' + error.message + '\nmelanjutkan operasi...');
+                break;
+              case error instanceof OperationError:
+                console.log('terjadi kesalahan selama operasi matrix, segera melanjutkan ke matrix berikutnya...');
+                console.log(error);
+                break;
+              default:
+                // error yang tidak dapat ditangani
+                throw error;
+            };
+          }
+          finally {
+            console.log('membersihkan resource setelah operasi matrix');
+          };
+        };
+      }
+      catch (error) {
+        console.log('terjadi error fatal, operasi dihentikan.');
+        console.log('pesan: ' + error.message);
+      }
+    </script>
+  </body>
+</html>

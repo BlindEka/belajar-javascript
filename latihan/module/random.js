@@ -50,8 +50,8 @@ random.uniform = function uniform(min=0, max=1) {
   return min > max ? null : min + this.random() * (max - min);
 };
 
-random.randbool = function randbool() {
-  return Boolean(Math.round(this.random()));
+random.randbool = function randbool(truthyChance) {
+  return truthyChance ?? 0.5 > this.random();
 };
 
 random.sample = function sample(seq, k) {
