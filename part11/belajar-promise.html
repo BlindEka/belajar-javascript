@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <script src="../latihan/module/array-v2.js"></script>
+    <script src="../latihan/module/random.js"></script>
+    <title> belajar operasi asynchronous dengan promise</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // new Promise((resolve, reject) => ...) ( membuat instance Promise, menerima callback yang segera dijalankan dan memberi argumen resolve dan reject)
+      let p = new Promise((resolve, reject) => {
+        // melakukan operasi yang membutuhkan waktu
+        console.log('menjalankan operasi asynchronous')
+        if (Math.random() < 0.7) setTimeout(resolve, 3000, 'ini merupakan hasil dari operasi yang memakan waktu selama 3 detik'); // memiliki kesempatan 30% gagal
+        else reject(new Error('maaf sepertinya terjadi kesalahan'));
+      });
+      p.then(result => {
+        // dijalankan jika berhasil / resolved
+        console.log(result); // 'ini merupakan hasil dari operasi yang memakan waktu selama 3 detik'
+      })
+      .catch(error => { // sama dengan .then(null, function)
+        // dijalankan saat terjadi error dalam executor / rejected
+        console.log(error);
+      })
+      .finally(() => console.log('membersihkan resource setelah operasi...')); // selalu dijalankan terlepas resolved / rejected
+      // 
+      function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+      // Promise itu non blocking
+      delay(5000)
+      .then(() => console.log('saya alex datang setelah 2 detik setelah david'));
+      console.log('saya david datang duluan sebelum alex');
+      // setelah resolved / rejected, panggilan resolve dan reject lainnya diabaikan
+      new Promise((resolve, reject) => {
+        reject(new Error('sesuatu telah terjadi.'));
+        resolve('nilai ini tidak akan pernah keluar'); // diabaikan
+        })
+      .then(result => console.log('hasilnya:', result)) // tidak akan berjalan
+      .catch(error => console.log('Error:', error)); // yang akan berjalan
+      // promises chaining
+      new Promise(resolve => resolve(1))
+      .then(result => {
+        console.log(result); // 1
+        return result * 2; // diteruskan ke handler berikutnya
+      })
+      .then(result => {
+        console.log(result); // 2
+        return result * 2;
+      })
+      .then(result => console.log('angka terakhir: ' + result)); // 4
+      // objek thenable
+      let thenable = {
+        value: 'halo disana',
+        then(resolve, reject) {
+          // akan dipanggil layaknya executor promise
+          console.log('halo saya method dari objek thenable');
+          resolve(this.value);
+        }
+      };
+      new Promise(resolve => resolve(thenable))
+      .then(console.log); // 'halo disana'
+      // promises chaining yang mengembalikan promise agar berjalan secara asynchron
+      new Promise((resolve, reject) => {
+        // lakukan aksi pertama
+        console.log('melakukan fetching data...');
+        setTimeout(resolve, 5000, {name: 'alex', age: 20}); // simulasi fetching memakan waktu selama 5 detik
+      })
+      .then(result => {
+        console.log('berhasil mendapatkan data, memodifikasi data...');
+        result.country = 'united kingdom';
+        return new Promise(resolve => setTimeout(resolve, 3000, result)); // simulasi kalkulasi data memakan waktu 3 detik
+      })
+      .then(data => {
+        console.log('mengirim data kembali:', JSON.stringify(data))
+        return new Promise(resolve => setTimeout(resolve, 2000)); // simulasi mengirim data memakan waktu selama 2 detik
+      })
+      .then(result => console.log('data berhasil dikirim'));
+    </script>
+  </body>
+</html>
