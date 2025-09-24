@@ -7,14 +7,31 @@ class ArrayV2 extends Array {
   matrixOperation(operation, otherMatrix) {
     return this.doOperation(operation, otherMatrix, 1);
   }
-  mulMatrix = matrix => this.matrixOperation((num1, num2) => num1 * num2, matrix)
-  divMatrix = matrix => this.matrixOperation((num1, num2) => num1 / num2, matrix)
-  subMatrix = matrix => this.matrixOperation((num1, num2) => num1 - num2, matrix)
-  addMatrix = matrix => this.matrixOperation((num1, num2) => num1 + num2, matrix)
-  modMatrix = matrix => this.matrixOperation((num1, num2) => num1 % num2, matrix)
-  powMatrix = matrix => this.matrixOperation((num1, num2) => num1 ** num2, matrix)
+  mulMatrix() {this.matrixOperation((num1, num2) => num1 * num2, matrix)}
+  divMatrix() {this.matrixOperation((num1, num2) => num1 / num2, matrix)}
+  subMatrix() {this.matrixOperation((num1, num2) => num1 - num2, matrix)}
+  addMatrix() {this.matrixOperation((num1, num2) => num1 + num2, matrix)}
+  modMatrix() {this.matrixOperation((num1, num2) => num1 % num2, matrix)}
+  powMatrix() {this.matrixOperation((num1, num2) => num1 ** num2, matrix)}
   slice(start, end, step) {
-    return [].slice.apply(this, arguments);
+    // return [].slice.apply(this, arguments);
     // implementasikan step
+    start = start ?? 0;
+    // end = end ?? this.length;
+    step = step || 1;
+    let thisArray = [].slice.call(this);
+    if (start < 0) start = thisArray.length + start;
+    if (end < 0) end = thisArray.length + end;
+    if (start < 0 || start >= thisArray.length || end < 0 || end >= thisArray.length) throw RangeError(`${(start < 0 || start >= this.length) ? 'Start' : 'End'} index out of range`);
+    if (step < 0) {
+      [start, end] = [end, start];
+      thisArray.reverse();
+      step = Math.abs(step);
+    }
+    let newArray = new this.constructor();
+    for (let index = start; index < end ?? thisArray.length; index += step) {
+      if (thisArray.hasOwnProperty(index)) newArray.push(thisArray[index]);
+    };
+    return newArray;
   }
 }

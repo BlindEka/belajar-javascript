@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar penanganan error pada promise</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // promise yang di reject(error) sama dengan promise yang mengalami error
+      new Promise((resolve, reject) => {
+        let error = new Error('terjadi kesalahan');
+        throw error;
+        // sama dengan
+        reject(error);
+      }).catch(error => console.log(error.message));
+      // dan jika ada menjalankan handler .catch terdekat
+      let defaultData = {
+        name: 'david',
+        age: 18
+      };
+      // contoh fetching data yg gagal
+      fetch('https://no-such-url.com/anything') // rejected
+      .then(response => response.json()) // tidak dijalankan
+      .catch(error => { // setelah di handle status menjadi fullfilled
+        console.log('Terjadi masalah saat melakukan fetching data, menggunakan data default...');
+        return defaultData; // digunakan pada handler berikutnya
+      })
+      .then(data => showData(data)); // rantai promise berjalan sampai akhir karena error di handle
+      function showData(data) {
+        Object.entries(data).forEach(([key, value]) => console.log(`${key}: ${value}`));
+      }
+      // promise yang rejected dan tidak memiliki handler akan memicu event global 'unhandledrejection'
+      window.addEventListener('unhandledrejection',e => {
+        console.log('Ada promise yang mengalami error dan tidak di handle:');
+        console.log('promise:', e.promise); // objek promise yang mengalami error
+        console.log('error:', e.reason); // objek error
+      });
+      new Promise((resolve, reject) => reject(new Error('error yang tidak di handle')));
+    </script>
+  </body>
+</html>
