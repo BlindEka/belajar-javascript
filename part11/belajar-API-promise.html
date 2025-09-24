@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <script src="../latihan/module/random.js"></script>
+    <title>belajar menggunakan API pada Promise</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // Promise.all([...promises]) (mengembalikan promise yang menunggu hingga semua promise pada array selesai atau salah satu rejected)
+      // jika semua promise fullfilled maka array berisi result dari promise akan diberikan pada handler berikutnya
+      let numbers = [
+        random.randint(2,6),
+        random.randint(2,6),
+        random.randint(2,6),
+      ];
+      let start = Date.now()
+      Promise.all(numbers.map(num => new Promise(resolve => setTimeout(resolve, num * 1000, num))))
+      .then(nums => {
+        // setelah semua promise resolved
+        console.log('semua promise resolve dalam', Math.round((Date.now() - start) / 1000), 'detik');
+        console.log(`hasil dari ${nums.join(' + ')} adalah ${nums.reduce((prevValue, currValue) => prevValue + currValue, 0)}`);
+      });
+      // jika salah satu promise rejected, maka promise yang dikembalikan rejected dan error yang pertama akan diteruskan ke handler
+      Promise.all([
+        new Promise((resolve, reject) => setTimeout(reject, 1000, new Error('saya promise pertama menyebabkan error'))), // reject dalam 1 detik
+        ...numbers.map(num => new Promise(resolve => setTimeout(resolve, num * 1000, num))),
+        new Promise((resolve, reject) => setTimeout(reject, 1500, new Error('saya promise terakhir juga menyebabkan error'))), // tidak diteruskan ke handler on Rejected
+      ])
+      .catch(error => console.log('terjadi kesalahan:', error)); // saya promise pertama menyebabkan error
+      // nilai yang telah siap juga bisa termasuk dalam array
+      Promise.all([
+        new Promise(resolve => setTimeout(resolve, 4000, 10)),
+        ...numbers, // dimasukan sebagai nilai yang siap dan tersedia pada array yang diteruskan dalam urutan sama
+      ])
+      .then(nums => console.log(`hasil dari ${nums.join(' * ')} adalah ${nums.reduce((prevValue, currValue) => prevValue * currValue, 1)}`)); // tampil setelah 4 detik
+      // Promise.allSettled([promises]) (sama seperti promise .all namun jika salah satu promise reject, promise yang dikembalikan masih akan menunggu yg lain selesai dan mengembalikan hasilnya dalam array)
+      // array berisi objek dengan property yg memiliki property status(bernilai antara fulfilled dan rejected) dan value / reason jika fulfilled / rejected
+      Promise.allSettled([
+        new Promise((resolve, reject) => setTimeout(resolve, 6000, 'saya selesai')),
+        new Promise((resolve, reject) => setTimeout(resolve, 4000, 'saya selesai juga')),
+        new Promise((resolve, reject) => setTimeout(reject, 3000, new Error('saya gagal'))),
+      ]).then(results => {
+        console.log(`Semua promise telah selesai dalam ${Math.round((Date.now() - start) / 1000)} detik dengan ${results.filter(({status}) => status == "fulfilled").length} fulfilled dan ${results.filter(({status}) => status == "rejected").length} rejected`); // Semua promise telah selesai dalam 6 detik dengan 2 fulfilled dan 1 rejected
+        results.forEach(({status, value, reason}, index) => {
+          if (status == 'fulfilled') console.log(`promise ke ${index + 1} berhasil dengan nilai: ${value}`)
+          else console.log(`promise ke ${index + 1} gagal, dengan pesan error: ${reason.message}`);
+        })
+      });
+      // Promise.race([...promises]) (mengembalikan promise yang paling cepat selesai (terlepas resolved/rejected) dan mengabaikan hasil dari promises lainnya)
+      Promise.race([
+        new Promise((resolve, reject) => setTimeout(() => (Math  .random() > 0.5) ? resolve('Saya alex tiba duluan') : reject('saya alex cedera paling pertama'), random.randint(2,4) * 1000)),
+        new Promise((resolve, reject) => setTimeout(() => (Math  .random() > 0.5) ? resolve('Saya david tiba duluan') : reject('saya david cedera paling pertama'), random.randint(2,4) * 1000)),
+        new Promise((resolve, reject) => setTimeout(() => (Math  .random() > 0.5) ? resolve('Saya john tiba duluan') : reject('saya john cedera paling pertama'), random.randint(2,4) * 1000)),
+      ]).then(console.log, console.log);
+      // Promise.any([...promises]) (sama seperti Promise.race namun hanya merespon pada promise yang fulfilled tercepat, jika semua rejected maka akan diteruskan sebagai AggregateError pada handler onrejected terdekat)
+      Promise.any([
+        new Promise((resolve, reject) => setTimeout(reject, 1000, new Error('aduh kuotanya habis...'))), // walaupun paling cepat namun rejected
+        new Promise((resolve, reject) => setTimeout(resolve, 2000, 'online terus dengan unlimited')), // ini yang akan keluar karena paling cepat + resolve
+        new Promise((resolve, reject) => setTimeout(resolve, 3000, 'online terus dengan wifi')),
+      ]).then(console.log, console.log); // online terus dengan unlimited
+      // contoh dengan semua error
+      Promise.any([
+        new Promise((resolve, reject) => setTimeout(reject, 1000, new Error('aduh kuotanya habis...'))),
+        new Promise((resolve, reject) => setTimeout(reject, 2000, new Error('aduh baterainya habis...'))),
+      ]).catch(error => {
+        console.log(error); // AggregateError: All promises were rejected
+        error.errors.forEach(e => console.log(e.message)); // Aduh kuotanya habis, Aduh baterainya habis
+      });
+      // Promise.resolve(value) dan Promise.reject(error) (membuat promise dengan status resolve/reject dan nilai value/error)
+      // polyfill Promise.allSettled
+      if (! Promise.allSettled) {
+        const resolveHandler = (result) => ({status: 'fulfilled', value: result});
+        const rejectHandler = (error) => ({status: 'rejected', reason: error}); // nilai dari promises di ubah ke promise dengan Promise.resolve untuk berjaga jika itu bukan promise
+        Promise.allSettled = function(promises) {
+          const convertedPromises = Array.from(promises).map(p => Promise.resolve(p).then(resolveHandler, rejectHandler));
+          return Promise.all(convertedPromises);
+        };
+      };
+      // Promise.reject(error) sama dengan new Promise((resolve, reject) => reject(error))
+    </script>
+  </body>
+</html>
