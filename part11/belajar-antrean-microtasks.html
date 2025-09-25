@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar antrean microtasks promise</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // handler promise dijalankan setelah script ini selesai
+      console.log('saya kode sebelum blok');
+      {
+        console.log('saya kode dalam blok sebelum promise di inisialisasi');
+        // handler promise disimpan dalam antrean microtasks sebagai tugas dan dijalankan setelah script 
+        Promise.resolve(1)
+        .then(r => console.log('saya handler pertama dijalankan')) // muncul terakhir
+.then(() => console.log('saya handler kedua dijalankan')); // lalu ini
+        console.log('saya kode dalam blok setelah promise di inisialisasi');
+      };
+      console.log('saya kode sesudah blok');
+      let p1 = Promise.resolve().then(() => console.log('saya p1 handler 1 ambil antrean ke 1'));
+      let p2 = Promise.resolve().then(() => console.log('saya p2 handler 1 ambil antrean ke 2'));
+      p1.then(() => console.log('saya p1 handler 2 mengambil antrean ke 3'));
+      p2.then(() => console.log('saya p2 handler 2 mengambil antrean ke 4'));
+      // karena tidak ada jeda dalam contoh, antrean akan menjalankan handler dan mencetak pesan handler 1 pada blok 1, lalu p1 handler1, p2 handler 1,
+      // kemudian ke antrean di jajaran handler kedua yaitu blok1 handler 2, blok 2 p1 handler 2, p2 handler 2
+      // unhandled rejection
+      let p3 = Promise.reject(new Error('promise mengalami error'));
+      setTimeout(() => p3 = p3.catch(error => console.log('rejection baru saya tangani setelah 3 detik')), 3000);
+      window.addEventListener('unhandledrejection', e => console.log('promise gagal ditangani:', e.reason)); // pesan tetap muncul karena promise rejection baru ditangani setelah 3 detik
+    </script>
+  </body>
+</html>

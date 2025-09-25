@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar keyword async / await untuk fungsi asynchronous</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // keyword async digunakan untuk membuat fungsi asynchronous yang mengembalikan promise
+      async function getJson(url) {
+        // keyword await digunakan untuk menunggu promise hingga fulfilled/rejected
+        // jika fulfilled mengembalikan hasilnya (result.value), jika rejected sama dengan melemparkan errornya (throw promise.value)
+        // selama menunggu eksekusi fungsi dijeda dan javascript menjalankan task lainnya
+        let response = await fetch(url);
+        let data = await response.json();
+        return data;
+      }
+      getJson('https://api.github.com/users/BlindEka/repos/belajar-javascript')
+      .then(user => console.log('fullname:', user.name), e => console.log('terjadi kesalahan saat fetching data'));
+      // method asynchronous
+      class Time {
+        static async sleep(milliseconds) {
+          return new Promise(resolve => setTimeout(resolve, milliseconds));
+        }
+        // berlaku juga pada arrow function
+        static halo = async () => await new Promise(resolve => resolve('halo'))
+      }
+      // decorator untuk membuat fungsi asynchronus
+      function asynchronous(func) {
+        return function asynchronousWrapper(...args) {
+          return new Promise(resolve => resolve(func.apply(this, args)));
+        }
+      }
+      function mul(...numbers) {
+        return numbers.reduce((prev, curr) => prev * curr, 1);
+      }
+      let asyncMul = asynchronous(mul);
+      asyncMul(2,2,2).then(console.log); // 8
+      // await pada nilai non promise hanya akan mengembalikan nilai tersebut
+      (async (something) => console.log(await something))('halo disana'); // halo disana
+      // jika object nya memiliki method then, maka akan dipanggil dengan argumen resolve dan reject
+      class WaitAndRun {
+        constructor(seconds=0, callback=() => {}, ...args) {
+          this.seconds = seconds;
+          this.callback = callback;
+          this.args = args;
+        }
+        then(resolve, reject) {
+          // console.log(resolve); // function () { [native code] }
+          setTimeout(() => resolve(this.callback(...this.args)), this.seconds * 1000);
+        }
+      }
+      (async () => await new WaitAndRun(3, console.log, 'hello world!'))()
+    </script>
+  </body>
+</html>
