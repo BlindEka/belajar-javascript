@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar fungsi generator</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // function* (...) {...} (membuat fungsi generator)
+      function* gen1() {
+        console.log('sebelum angka 1');
+        yield 1; // saat generator dimulai eksekusi fungsi akan di pause sampai disini
+        console.log('sesudah angka 1');
+        yield 2; // dan dipause disini lagi setelah di generator.next() lagi, dst...
+        console.log('sesudah angka 2');
+        yield 3; // menjadi angka terakhir dalam for.of loop/iteration
+        console.log('sesudah angka 3');
+        return 4; // menandakan generator selesai dengan nilai terakhir 4
+      }
+      // fungsi generator menghasilkan generator
+      let myGenerator = gen1();
+      console.log(myGenerator); // gen1 {<suspended>}
+      console.log(myGenerator.next()); // 'sebelum angka 1', 1
+      console.log(myGenerator.next()); // 'sesudah angka1', 'sebelum angka 2', 2
+      console.log(JSON.stringify(myGenerator.next())); // {"value":3,"done":false}
+      console.log(JSON.stringify(myGenerator.next())); // berakhir disini, dengan: {"value":4,"done":true}
+      console.log(myGenerator); // gen1 {<closed>}
+      console.log(JSON.stringify(myGenerator.next())); // {"done":true}
+      let angka = [...gen1()]; // [1, 2, 3]
+      // fungsi untuk menghasilkan generator angka
+      function* seq(start=0, end=10, step=1) {
+        for (let i = start; i <= end; i += step || 1) yield i;
+      }
+      let numbers = [...seq(1, 11, 2)];
+      console.log(JSON.stringify(numbers)); // [1,3,5,7,9, 11]
+      // generator composition
+      // yield* generator (menyatukan hasil dari multi generator menjadi satu dengan generator saat ini)
+      function* joinGenerators(...generators) {
+        for (let generator of generators) yield* generator; // sekarang hasil dari generator di kombinasikan dengan generator yang dihasilkan fungsi ini
+      }
+      numbers = [...joinGenerators(seq(1,10), seq(11,20))]; // [1,...20]
+      console.log(JSON.stringify(numbers));
+      // generator tidak hanya mengembalikan nilai namun menerima juga
+      function* logout() {
+        try {
+          console.log('apakah kamu yakin ingin logout?');
+          let confirmation = yield;
+          if (confirmation) console.log('anda telah logout.')
+          else console.log('logout dibatalkan.');
+        } catch (error) {
+          console.log('Terjadi kesalahan selama proses logout:', error.message)
+        }
+      }
+      let generator = logout();
+      generator.next(); // mencapai eksekusi yield pertama
+      generator.next(true); // melanjutkan eksekusi sebelumnya dan menyisipkan argumen yang diberikan ke baris yield sebelumnya dan akhirnya di assign ke confirmation
+      // generator.throw(error) (melemparkan error pada fungsi generator di baris yg dijeda)
+      generator = logout();
+      generator.next(); // 'apakah anda yakin ingin logout?'
+      generator.throw(new Error('Anda tidak memenuhi syarat untuk logout')); // Terjadi kesalahan selama proses logout: Anda tidak memenuhi syarat untuk logout
+      function pseudoRandom(seed) {
+        while (true) {
+          seed = seed * 16807 % 2147483647;
+          yield seed;
+        }
+      }
+    </script>
+  </body>
+</html>
