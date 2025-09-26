@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar asynchron generator</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      class Seq {
+        constructor(start, end, step, ms) {
+          this.start = start;
+          this.end = end;
+          this.step = step || 1;
+          this.ms = ms ?? 0;
+        }
+        *[Symbol.iterator]() { // dipanggil untuk iterator sinkron
+          for (let i = this.start; i < this.end; i += this.step) yield i;
+        }
+        async *[Symbol.asyncIterator]() { // dipanggil saat iterasi asinkron
+          for (let i = this.start; i <= this.end; i+= this.step) yield await new Promise(resolve => setTimeout(resolve, this.ms, i));
+        }
+      }
+      // jalankan generator asinkron
+      let start = Date.now();
+      // gunakan for await (...) untuk iterasi generator asinkron
+      // for loop asinkron harus dijalankan di lingkungan asinkron
+      void async function () {
+        for await (let number of new Seq(1, 11, 1, 1000)) { // jeda selama 1 detik untuk setiap angka
+          console.log(`Angka ${number} telah siap setelah ${Math.round((Date.now() - start) / 1000)} detik loop dijalankan.`);
+        };
+      }();
+      function* asyncRange(ms, start, end, step=1) {
+        for (let i = start; i < end; i += step) yield new Promise(resolve => setTimeout(resolve, ms, i));
+      }
+      setTimeout(async function () {
+        let start = Date.now();
+        for await (let number of asyncRange(1000, 11, 21, 2)) console.log(`Angka ${number} telah siap setelah ${Math.round((Date.now() - start) / 1000)} detik loop dijalankan.`);
+      }, 10000);
+      // contoh mendapatkan data yg banyak secara asinkron
+      async function* getJsons(...urls) {
+        for (let url of urls) {
+          try {
+            const response = await fetch(url);
+            let data = await response.json();
+            yield {status: 'fulfilled', value: data};
+          }
+          catch (error) {
+            yield {status: 'rejected', reason: error};
+          }
+        }
+      }
+      // mendapatkan commits repository github
+      async function* getCommits(repo) {
+        let url = `https://api.github.com/repos/${repo}/commits`;
+        while (url) {
+          let response = await fetch(url);
+          let commits = await response.json();
+          for (commit of commits) {
+            yield commit;
+          }
+          url = response.headers.get('Link').match(/<(.*?)>; rel="next"/)?.[1];
+        }
+      }
+    </script>
+  </body>
+</html>
