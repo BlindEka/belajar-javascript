@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar module, import export module</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ambil script dengan type="module" -->
+    <script type="module">
+      // module selalu dijalankan terakhir setelah halaman dimuat sepenuhnya
+      // "use strict"; // tidak diperlukan karena module selalu berjalan dalam mode ketat
+      // statement import selalu dijalankan lebih dulu
+      console.log('halo dari tag script');
+      // module hanya di evaluasi sekali sehingga pesan console hanya dicetak 1 kali
+      import {User} from "user.js";
+      import {obj as myObj, publicVariable as myVariable} from "./message.js"; // gunakan as untuk membuat alias
+      // module memiliki batasan level sehingga class, function, variable dari module lain tidak bisa diakses dari module lain
+      // console.log(myVariable); // ReferenceError myVariable is not define
+
+      // import harus memiliki path absolute atau relative tidak boleh kosong
+      // import {blabla} from "anything.js" // error
+    </script>
+    <!-- script dengan type module hanya dieksekusi sekali walaupun ada dua -->
+    <script type="module" src="./message.js""></script>
+    <script type="module" src="./message.js""></script> <!-- tidak akan berjalan kedua kalinya -->
+    <script src="./message.js" nomodule></script> <!-- untuk kompatibilitas dengan browser lama yang tidak support type="module" -->
+    <script onerror="alert('gagal memuat script');window.test = 'ada';" type="module">
+      let myVariable = 'hello world';
+      alert('hello world');
+      broadcat 
+    </script>
+  </body>
+</html>
