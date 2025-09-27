@@ -172,7 +172,7 @@
             func.apply(thisArg ?? this, args)
           } else {
             clearTimeout(lastTimerId);
-            lastTimerId = setTimeout(() => wrapper.apply(this, args), now - lastCall);
+            lastTimerId = setTimeout(() => wrapper.apply(this, args), lastCall + ms - now);
           };
         };
       }
