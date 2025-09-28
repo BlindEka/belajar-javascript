@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar objek Proxy dan Reflect</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // mengubah perilaku default objek dengan proxy
+      class List extends Array {
+        constructor(...items) {
+          super(...items);
+          // kembalikan proxy dengan handler yg ditentukan untuk mengubah perilaku default objek
+          return new Proxy(this, {
+            get(list, propName, receiver) { // terpicu saat mengakses property (list[propName] / list.propName)
+              // support minus index
+              propName = (isFinite(propName) && propName < 0) ? list.length + +propName : propName;
+              if (isFinite(propName) && propName < 0 || propName >= list.length) throw RangeError(`List index out of range`);
+              return Reflect.get(list, propName, receiver); // gunakan Reflect.get agar bisa meneruskan receiver sebagai thisArg jika property merupakan getter
+            },
+            set(list, propName, value, receiver) { // terpicu saat menulis property (list[propName] / list.propName = value)
+              propName = (isFinite(propName) && propName < 0) ? list.length + +propName : propName;
+              if (isFinite(propName) && propName < 0 || propName > list.length) return false; // return false jika mengatur nilai tidak berhasil
+              return Reflect.set(list, propName, value, receiver);
+            },
+            has(list, item) { // terpicu oleh operator in
+              try {
+                if (isFinite(item)) return list.includes(+item);
+                return list.map(item => (item?.toJSON || item?.__proto__ === Object.prototype || Array.isArray(item)) ? JSON.stringify(item) : item).includes(item);
+              } catch(error) {
+                return null;
+              }
+            },
+            ownKeys(list) {
+              // mengamankan protected property
+              let keys = Object.keys(list).filter(key => ! key.startsWith('_'));
+              keys.push('length'); // turunan array harus memiliki ini
+              return keys;
+              return Reflect.ownKeys(list).filter(key => ! key.startsWith('_')); // cara tercepat
+            }
+          });
+        }
+        // static get [Symbol.species]() {return List}
+      }
+      // buat instance
+      let myList = new List(1,200,334,7, 'ABC');
+      let obj = {name: 'adam', age: 20};
+      myList.push(obj);
+      console.log(334 in myList); // true
+      console.log(JSON.stringify(obj) in myList); // true
+      console.log('ABC' in myList); // true
+      console.log(JSON.stringify(myList[-1])); // {"name": "adam", "age": 20}
+      // mengamankan property protected dari akses eksternal
+      function safeProtected(target) {
+        return new Proxy(target, {
+          get(target, prop) {
+            if (prop.startsWith('_')) throw TypeError(`Property are protected: ${prop}`);
+            return target[prop];
+          },
+          set(target, prop, value) {
+            if (prop.startsWith('_')) throw TypeError(`Property are protected: ${prop}`);
+            target[prop] = value;
+            return true;
+          },
+          deleteProperty(target, prop) {
+            if (prop.startsWith('_')) throw TypeError(`Property are protected: ${prop}`);
+            return delete target[prop];
+          },
+          ownKeys(target) {
+            return Object.keys(target).filter(key => ! key.startsWith('_'));
+          },
+        });
+      }
+      let user = {
+        name: 'alex',
+        _password: 'secret_pass'
+      };
+      user = safeProtected(user);
+      try {console.log(user._password)} catch(e) {console.log(`terjadi error: ${e}`)};
+      console.log(Object.keys(user).includes('_password')); // false
+      function seq(start, end) {
+        return new Proxy(function*() {
+          for (let i = start; i <= end; i ++) yield i;
+        }(),
+        {
+          has(target, prop) {
+            return start <= prop && prop <= end
+          }
+        });
+      }
+      let range = seq(1,10);
+      console.log(5 in range); // true
+      console.log(22 in range); // false
+      // mengatasi private property pada object yg di proxy
+      // salah satu kekurangan proxy adalah akses pada private property
+      class User {
+        #name
+        get name() {return this.#name;}
+        getName(){return this.#name}
+        constructor(name) {
+          this.#name = name;
+          return new Proxy(this, {
+            get(target, p, receiver) {
+              // property private (#prop) disimpan di internal slot, dan tidak diakses melalui [[get]] (yang diubah oleh proxy disini)
+              // itu diakses secara internal pada objeknya sehingga objek this haruslah benar (bukan objek proxy ini)
+              let value = Reflect.get(target, p, target); // receiver harus target karena jika itu adalah getter, this harus memiliki property private nya
+              if (typeof value == 'function') value = value.bind(target); // bind this sehingga method yang mengakses internal slot memiliki thisArg yg benar
+              return value;
+            }
+          });
+        }
+      }
+      let user1 = new User('abraham');
+      console.log(user1.getName());
+      console.log(user1.name);
+      // Proxy.revocable(target, handler) (mengembalikan object dengan revoke dan proxy nya)
+      const allAccounts = new Map();
+      const revokes = new WeakMap();
+      class Account {
+        constructor(username, password='admin') {
+          this.username = username;
+          this._password = password;
+          allAccounts.set(username, this);
+          let {proxy, revoke} = Proxy.revocable(this, {
+            get(target, p, receiver) {
+              if (p.startsWith('_')) throw new Error('Access is denied.');
+              let value = Reflect.get(target, p, target);
+              return (typeof value == 'function') ? value.bind(target) : value;
+            },
+            set(target, p, value, receiver) {
+              if (p.startsWith('_')) throw new Error('Access is denied.');
+              return Reflect.set(target, p, value, target);
+            }
+          });
+          revokes.set(proxy, revoke);
+          return proxy;
+        }
+        getPassword() {
+          return this._password;
+        }
+      }
+      function deactivateAccount(Account) {
+        revokes.get(Account)?.(); // menghapus referensi ke objek asli dari proxy
+      }
+      let myAccount = new Account('John', 'secret');
+      // akses sesuatu
+      console.log('myAccount pass:', myAccount.getPassword()); // secret 
+      // matikan akses proxy
+      deactivateAccount(myAccount);
+      try {
+        console.log('myAccount pass:', myAccount.getPassword()); // TypeError: Cannot perform 'get' on a proxy that has been revoked
+      } catch(error) {
+        console.log(error);
+      }
+      // wrapper untuk throw error saat property tidak terdefinisi diakses
+      function wrap(obj) {
+        return new Proxy(obj, {
+          get(target, p, receiver) {
+            if (! Reflect.has(target, p)) throw new ReferenceError(`Property doesn't exist: "${p}".`);
+            return Reflect.get(target, p, receiver);
+          }
+        });
+      }
+      obj = wrap(obj);
+      try {
+        console.log(obj.name);
+        obj.birthday; // ReferenceError Property doesn't exist "birthday"
+      } catch(e) {console.log(e)};
+      function makeObservable(obj) {
+        let handlers = [],
+        observe = handler => handlers.push(handler);
+        return new Proxy(obj, {
+          get(target, p, receiver) {
+            if (p == 'observe') return observe;
+            return Reflect.get(...arguments);
+          },
+          set(target, p, value, receiver) {
+            if (Reflect.set(...arguments)) {
+              handlers.forEach(handler => handler(p, value));
+              return true;
+            };
+          }
+        });
+      }
+      obj = {name: 'rose', age: 12};
+      let observableObj = makeObservable(obj);
+      observableObj.observe((key, value) => console.log(`Nilai ${value} ditulis ke property ${key}`));
+      observableObj.age = 22;
+      observableObj.observe((key, value) => console.log(`Saya menulis ${value} ke property ${key}`));
+      observableObj.name = 'alexa';
+    </script>
+  </body>
+</html>
