@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar menjalankan kode dengan fungsi eval</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // eval(`code`) (menjalankan kode, mengembalikan hasil dari pernyataan terakhir kode)
+      let number = eval('1 + 1');
+      console.log(number); // 2
+      // Kode yang dievaluasi akan dieksekusi di lingkungan leksikal saat ini, sehingga dapat melihat variabel luar
+      void function() {
+        let localNumber = 99;
+        eval(`localNumber ++`);
+        console.log(localNumber); // 100
+        eval(`number ++`);
+      }();
+      console.log(number); // 3
+      // Dalam strict mode, eval memiliki lingkungan leksikal sendiri. Jadi, fungsi dan variabel yang dideklarasikan di dalam eval, tidak akan terlihat di luar
+      let x;
+      eval(`let x = 10;function f(){}`);
+      console.log(x); // undefined
+      new Promise(resolve => resolve(f())).catch(error => console.log(error)); // ReferenceError: f is not defined
+      // gunakan window.eval(...) untuk menjalankan eval dalam lingkup global
+      {
+        let number = 999;
+        window.eval(`number ++`);
+        console.log(`local number: ${number}`); // 999
+      }
+      console.log(`global number: ${number}`); // 4
+      // fungsi untuk membuat fungsi
+      function createFunction(fName, [...fArguments], fCode) {
+        return eval(`(function ${fName ?? ''}(${fArguments.join(', ')}) {${fCode}})`);
+      }
+      let code = `return x * y;`;
+      let mul = createFunction('mul', ['x', 'y'], code);
+      console.log(mul); // function mul(x, y) {return x * y;}
+      console.log(`hasil dari 3 * 3 adalah ${mul(3,3)}`); // hasil dari 3 * 3 adalah 9
+      // kalkulator
+      function calculator(expression) {
+        try {
+          return eval(expression);
+        } catch {
+          return NaN;
+        }
+      }
+      // 
+      let exp = "1 + 1 * 4 ** 2";
+      let result = calculator(exp);
+      console.log(exp + ' =', result); // 17
+    </script>
+  </body>
+</html>
