@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar import dinamis dengan import(&quot;.../module.js&quot;)</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // gunakan await import("path/to/module.js") untuk mengimpor module secara dinamis
+      // syntax import(...) bisa dijalankan di script biasa (non-module)
+      async function loadSay() {
+        let say = await import('./say.js');
+        say.hi();
+        say.bye();
+        return say;
+      }
+      let p = loadSay();
+    </script>
+  </body>
+</html>
