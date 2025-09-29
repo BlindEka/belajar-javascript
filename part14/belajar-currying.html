@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar currying</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      "use strict";
+      // fungsi helper yang mengubah func(a,b) menjadi f(a)(b)
+      function curry(f) {
+        return function wrapper(...args) {
+          // fungsi yang di curry harus memiliki argument tetap / bukan rest parameter (...args) karena tidak terhitung sbg f.length
+          if (args.length < f.length) return function(...args2) {return wrapper.apply(this, args.concat(args2))};
+          return f.apply(this, args);
+        };
+      }
+      // fungsi yang akan di curry
+      function mul(a, b) {
+        return a * b;
+      }
+      let curriedMul = curry(mul);
+      let result = curriedMul(3)(3);
+      console.log(`hasil dari 3 * 3: ${result}`); // 9
+      // tetap bisa dipanggil dengan cara yg biasa
+      result = curriedMul(3, 5);
+      console.log(`hasil dari 3 * 5 dengan pemanggilan biasa: ${result}`); // 15
+      // membuat partial function menjadi lebih mudah dengan curried function
+      function log(level, date, message) {
+        date = (date instanceof Date) ? "[" + `${date.getDate()}/${date.getMonth()}/${date.getFullYear()} ` + date.toTimeString().slice(0, 8) + "]" : "[?]";
+        console.log(`${date} ${level?.toUpperCase() ?? level}: ${message}`);
+      }
+      // curry
+      let curriedLog = curry(log);
+      let debug = curriedLog("debug"); // currying argument pertama
+      debug(new Date(), "fungsi parsial debug berhasil dibuat dari fungsi log.");
+      let debugNow = debug(new Date());
+      debugNow("fungsi parsial debugNow berhasil dibuat.")
+    </script>
+  </body>
+</html>
