@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar menelusuri dom</title>
+    <script>
+      // karena script berada pada tag head, browser belum membaca body sehingga nilai document.body = null
+      console.log('nilai document.body dari script di dalam head:', document.body); // null
+    </script>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    teks ini adalah anak pertama
+    <div>ini anak (child node) body kedua</div>
+    <ul>
+      <li>ini cucu pertama dari anak keempat node body</li>
+    </ul>
+    <!-- komentar ini valid sebagai node dan sudah terbaca oleh browser -->
+    <script>
+      "use strict";
+      // sekarang document.body memiliki nilai karena telah terbaca oleh browser
+      console.log('nilai document.body dari script didalam body:', document.body); // <body>...</body>
+      // text indentasi (seperti \n dan spasi) valid pada dom dan diidentifikasi sbg node #Text
+      console.log(document.body.childNodes) // Text, div, text, ul,... script
+      console.log('node anak pertama:', document.body.firstChild); // " teks ini adalah anak pertama "
+      console.log('node anak terakhir:', document.body.lastChild); // script
+      // sibling adalah saudara (node) yg memiliki parent node yg sama
+      console.log('head dan body saling bersaudara:', document.body.parentNode === document.head.parentNode); // true
+      console.log('parent head adalah node html:', document.head.parentNode === document.documentElement); // true
+      console.log('saudara ke kiri dua kali dari body adalah head:', document.body.previousSibling.previousSibling === document.head); // karena text indentasi termasuk node maka head adalah ke kiri dua kali
+      console.log('anak kedua body:', document.body.firstChild.nextSibling); // "<div>ini anak (child node) body kedua</div>"
+      console.log('anak keempat body:', document.body.firstChild.nextSibling.nextSibling.nextSibling); // "<ul> ... </ul>"
+      // element.children (mengembalikan semua anak langsung namun hanya element, melewatkan node comment dan text)
+      console.log('anak element dari body:', document.body.children); // div, ul, script
+      console.log('anak element pertama body:', document.body.firstElementChild); // div
+      console.log('anak element terakhir body:', document.body.lastElementChild); // script
+      console.log(document.body.firstElementChild.nextElementSibling.nextElementSibling === document.body.lastElementChild); // true
+      // koleksi node itu read only
+      // document.body.childNodes[0] = document.createTextNode('text baru'); // error
+    </script>
+    <!-- komentar ini belum ada pada saat script diatas dijalankan sehingga tidak ada pada node list -->
+    <table id="tabel-nilai">
+      <caption>Tabel nilai mata pelajaran siswa untuk matematika dan bahasa inggris</caption>
+      <thead>
+        <tr>
+          <td colspan="4">Nilai tiap mata pelajaran siswa</td>
+        </tr>
+        <tr>
+          <td rowspan="2">ID</td>
+          <td rowspan="2">Nama</td>
+          <td colspan="2">Nilai</td>
+        </tr>
+        <tr>
+          <td>Matematika</td>
+          <td>Bahasa inggris</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Budi</td>
+          <td>88</td>
+          <td>70</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Andi</td>
+          <td>79</td>
+          <td>75</td>
+        </tr>
+      </tbody>
+    </table>
+    <script>
+      "use strict";
+      // property spesial untuk element table
+      const table = document.getElementById('tabel-nilai');
+      // table.caption/tHead/tFoot – referensi ke elemen "<caption>, <thead>, <tfoot>".
+      console.log(table.caption.innerText); // "Tabel nilai mata pelajaran siswa untuk matematika dan bahasa inggris"
+      console.log(table.tHead); // "<thead>...</thead>"
+      console.log('thead pada tabel memiliki total baris:', table.tHead.rows.length); // 3
+      console.log(table.tFoot); // null
+      // table.rows (semua baris termasuk dari thead dan tbody)
+      console.log('semua baris pada tabel berjumlah:', table.rows.length); // 5
+      // table.tBodies (koleksi tbody pada table)
+      console.log('tbody pada table berjumlah:', table.tBodies.length); // 1
+      console.log('baris pada tbody berjumlah:', table.tBodies[0].rows.length); // 2
+      let data = Array.from(table.tBodies[0].rows);
+      // tr.cells (koleksi cell data pada baris tersebut)
+      for (let row of data) {
+        let cells = Array.from(row.cells);
+        console.log(cells.map(cell => cell.innerText).join(' | '));
+      }
+      // tr.sectionRowIndex & tr.rowIndex (posisi urutan index untuk tBody itu sendiri atau secara keseluruhan tabel)
+      data[0] === table.tBodies[0].rows[data[0].sectionRowIndex]; // true
+      data[1] === table.rows[data[1].rowIndex]; // true
+      // th/td.cellIndex (posisi index cell tersebut)
+      data[0].cells[0].cellIndex; // 0
+    </script>
+  </body>
+</html>
