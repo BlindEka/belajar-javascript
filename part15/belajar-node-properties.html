@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar node properties</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      Alat tulis:
+      <ul>
+        <li>Pensil</li>
+        <li>Pulpen</li>
+        <li>Penghapus</li>
+        <li>Penggaris</li>
+      </ul>
+    </div>
+    <h2>Ketik untuk dirender</h2>
+    <textarea id="main-input" oninput="document.getElementById('html-renderer').innerHTML = this.value; document.getElementById('text-renderer').textContent = this.value; document.getElementById('text-renderer').textContent = document.getElementById('text-renderer').innerHTML"></textarea>
+    <h3>keluaran sebagai HTML:</h3>
+    <div id="html-renderer"></div>
+    <h3>Keluaran sebagai text:</h3>
+    <div id="text-renderer"></div>
+    <h2>jalankan script</h2>
+    <textarea id="source-code-input" placeholder="masukan kode javascript..." oninput="this.value ? document.getElementById('run-script-btn').disabled = false : document.getElementById('run-script-btn').disabled = true"></textarea>
+    <button disabled id="run-script-btn" aria-label="jalankan script" onclick="new Promise(resolve => resolve(eval(document.getElementById('source-code-input').value))).catch(error => alert(`Terjadi error saat menjalankan script: ${error}`))">jalankan script</button>
+    <div id="outer-div">
+      <div>
+        <p>sebuah konten teks</p>
+      </div>
+    </div>
+    <script>
+      "use strict";
+      // node.nodeType (bernilai angka yang menunjukan tipe node, 1 untuk element, 3 untuk #text, dst...)
+      let bodyChildNodes = document.body.childNodes;
+      bodyChildNodes[0].nodeType; // 3 untuk text node
+      bodyChildNodes[1].nodeType; // 1 untuk element node
+      // node.data/nodeValue (tersedia untuk node non-element, bernilai text isi node tsb)
+      console.log(document.body.firstElementChild.firstChild.data.trim()); // mendapatkan teks diantara "<li>" dan "<ul>"
+      // node.nodeName/tagName (bernilai nama node atau nama tag untuk element node, tagName hanya tersedia untuk element node)
+      console.log(bodyChildNodes[0].nodeName); // #text
+      console.log(bodyChildNodes[1].nodeName); // DIV
+      // element.innerHTML (bernilai isi element (tidak termasuk element nya) dalam bentuk string, bisa ditulis)
+      document.getElementById('outer-div').innerHTML += "<div><p>sebuah text kedua</p></div"; // meng append kode html
+      // element.textContent/innerText (bernilai teks di dalam element, mengabaikan kode tag html)
+      console.log(document.getElementById('outer-div').textContent.trim());
+      // element.outerHTML (text HTML termasuk element itu sendiri beserta isiannya)
+      let outerDiv = document.getElementById('outer-div');
+      outerDiv.outerHTML = `<div id="new-outer-div">outer div element yg baru</div>`;
+      outerDiv.innerHTML += `<div>div ketiga</div>`; // tidak akan terpengaruh ke dokumen asli karena posisi element sudah diganti sebelumnya dengan element yg berbeda
+      setTimeout(() => document.getElementById('new-outer-div').outerHTML = outerDiv.outerHTML, 5000); // meletakan kembali element sebelumnya
+
+    </script>
+  </body>
+</html>
