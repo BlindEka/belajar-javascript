@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .list {
+        font-style: italic;
+        background-color: magenta;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="title-container">
+      <h1 id="title">Nilai hasil ujian siswa</h1>
+    </header>
+    <p>
+      berikut merupakan nilai hasil ujian diurutkan dari terbesar.<br />
+      Nilai hanya untuk mata pelajaran matematika dan bahasa inggris.
+    </p>
+    <table id="tabelNilai">
+      <caption>Tabel nilai hasil ujian siswa untuk mata pelajaran matematika dan bahasa inggris</caption>
+      <thead>
+        <tr>
+          <th rowspan="2">ID</th>
+          <th rowspan="2">Nama</th>
+          <th colspan="2">Nilai</th>
+        </tr>
+        <tr>
+          <th>Matematika</th>
+          <th>Bahasa inggris</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>Budi</td>
+          <td>88</td>
+          <td>70</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Andi</td>
+          <td>79</td>
+          <td>75</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td>Restu</td>
+          <td>74</td>
+          <td>71</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>Haykal</td>
+          <td>72</td>
+          <td>69</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Iwan</td>
+          <td>57</td>
+          <td>60</td>
+        </tr>
+      </tbody>
+    </table>
+    <h2>jadwal ujian berikutnya:</h2>
+    <p>
+      Jadwal bisa semata mata berubah, silahkan pantau terus website ini.
+    </p>
+    <ul class="list">
+      <li>selasa: fisika</li>
+      <li>rabu: kimia</li>
+      <li>kamis: sejarah</li>
+      <li>jumat: penjaskes</li>
+    </ul>
+    <h2>Hadiah ranking:</h2>
+    <p>
+      Hadiah memiliki ketentuan dan syarat tertentu.<br/>
+      Silahkan lihat Kebijakan di bawah list hadiah.
+    </p>
+    <ul id="list-hadiah" class="list">
+      <li name="hadiah">#1: macbook air m2 pro</li>
+      <li name="hadiah">#2: iPhone 13</li>
+      <li name="hadiah">#3: xiaomi mi 13T 13</li>
+    </ul>
+    <h2>Kebijakan penerima hadiah:</h2>
+    <ul class="list">
+      <li>Belum pernah memenangkan hadiah sebelumnya.</li>
+      <li>Jika terbukti curang hadiah dianggap hangus dan pemenang tidak dapat lagi memenangkan hadiah di ujian tahun berikutnya yg ada.</li>
+      <li>Hadiah dapat diambil 1 bulan setelah diumumkan</li>
+    </ul>
+    <h2>Link download kisi kisi:</h2>
+    <ul id="list-kisi" class="list">
+      <li><a href="https://contoh-sekolah.com/kisi/fisika.pdf">Fisika</a></li>
+      <li><a href="https://contoh-sekolah.com/kisi/kimia.pdf">Kimia</a></li>
+      <li><a href="https://contoh-sekolah.com/kisi/sejarah.pdf">sejarah</a></li>
+    </ul>
+    <h2>Info lainnya:</h2>
+    <p>Untuk mendapatkan info lainnya silahkan klik link - link dibawah ini</p>
+    <a href="https://contoh-sekolah.com/info-ujian">info ujian</a><br />
+    <a href="https://contoh-sekolah.com/pendaftaran-ujian">mendaftar ujian</a>
+    <div>div pertama</div>
+    <div>div kedua</div>
+    <script>
+      "use strict";
+      // mendapatkan element dengan id element
+      const tabel = document.getElementById('tabelNilai');
+      tabel.style.background = 'lightblue'; // mengubah warna background ke biru cerah
+      // atau mengambil langsung dari object global menggunakan namanya
+      console.log(tabelNilai === tabel); // mengambil tabel dengan id nya dari objek window
+      window['title'].style.textTransform = 'uppercase';
+      // document.querySelector, querySelectorAll (mendapatkan salah satu atau beberapa element dengan css selector, mendukung pseudo class)
+      document.querySelector('ul').style.backgroundColor = 'skyblue'; // memilih element ul pertama dan mengubah warna backgroundnya
+      let firstItems = Array.from(document.querySelectorAll('ul > li:first-child')); // memilih item pertama dari element ul
+      console.log('first items of list:', '\n- ' + firstItems.map(item => item.innerText).join('\n- '));
+      // element.matches(selector) (mengembalikan true jika selector css cocok untuk element ini, false jika tidak)
+      let linkPdf = Array.from(document.querySelectorAll('a  ')).filter(element => element.matches('a[href$=".pdf"]')); // memfilter hanya pada link yg mengarah pada suffix *.pdf
+      console.log('Link pdf:\n' + linkPdf.map(element => `${element.innerText}: ${element.href}`).join('\n'));
+      // element.closest(selector) (mengembalikan anchestor (parent dari element, parent dari parent element, dst) terdekat yg cocok dengan selector, element yg memanggil method juga dicek)
+      linkPdf[0].closest('ul').querySelectorAll('a')[0] === linkPdf[0]; // true
+      linkPdf[0].closest('h1'); // null karena h1 bukan anchestor
+      // element.getElementsByTagName(tagName) (mengembalikan koleksi element dengan tagName yg sama di dalam element)
+      document.getElementById('list-kisi').getElementsByTagName('*'); // li, a, li, a, ...
+      // element.getElementsByClassName(className) (mendapatkan koleksi element dengan kelas css className)
+      document.body.getElementsByClassName('list'); // ul, ul, ...
+      // document.getElementsByName(name) (mendapatkan koleksi element dengan atribut element name yang diberikan)
+      document.getElementsByName('hadiah'); // li, li, li
+      // semua method getElementBy* mengembalikan live collection sedangkan querySelectorAll mengembalikan static collection
+      let fromQuery = document.querySelectorAll('div'),
+      fromTagName = document.getElementsByTagName('div');
+      console.log('sebelum ditambah div baru:');
+      console.log(`fromQuery length: ${fromQuery.length}, fromTagName length: ${fromTagName.length}`); // 2, 2
+      document.body.append(document.createElement('div'));
+      console.log('setelah ditambah div baru:');
+      console.log(`fromQuery length: ${fromQuery.length}, fromTagName length: ${fromTagName.length}`); // 2, 3
+      // element.contains(subElement) (mengembalikan true jika subElement merupakan turunan/ada dalam element atau merupakan element itu sendiri)
+      let listHadiah = document.getElementById('list-hadiah'),
+      hadiah = document.getElementsByName('hadiah');
+      console.log('hadiah[0] ada pada listHadiah:', listHadiah.contains(hadiah[0])); // true
+      console.log('listHadiah.contains(listHadiah) :', listHadiah.contains(listHadiah)); // true
+    </script>
+  </body>
+</html>
