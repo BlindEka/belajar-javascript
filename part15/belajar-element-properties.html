@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar element properties</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <label>
+      Nomor HP<br/>
+      <input id="phone-number-input" value="123" type="text" countrycode="62" placeholder="masukan nomor hp..." />
+    </label>
+    <div data-background-color="skyblue">
+      Sebuah konten disini
+    </div>
+    <div data-background-color="teal">
+      Sebuah sub konten disini
+    </div>
+    <div>
+      <h2>links</h2>
+      <ul>
+        <li><a href="http://anything.com/any-url">link 1</a></li>
+        <li><a href="http://anything.com/any-url-2">link 2</a></li>
+        <li><a href="http://localhost:8000/any-url-2">link 3</a></li>
+        <li><a href="http://localhost:8000/any-url-2">link 4</a></li>
+        <li><a href="http://localhost:8000/any-url-2">link 5</a></li>
+      </ul>
+    </div>
+    <script>
+      "use strict";
+      // attribut non standar tidak akan ada sbg property dom
+      let phoneInput = document.getElementById('phone-number-input');
+      console.log('phoneInput.counterycode:', phoneInput.countrycode); // undefined
+      console.log('phoneInput.type:', phoneInput.type); // "text" (merupakan attribut standart element input)
+      // menggunakan elem.hasAttribute/getAttribute(attributeName) untuk memeriksa keberadaan / mendapatkan attribut(bekerja juga untuk attribute non standar)
+      console.log(phoneInput.hasAttribute('countrycode')); // true
+      console.log(phoneInput.getAttribute('countrycode')); // 62
+      // elem.setAttribute/removeAttribute (mengatur / menghapus attribute pada elem)
+      phoneInput.setAttribute('countrycode', '13');
+      phoneInput.setAttribute('isActiveNumber', true);
+      console.log('nilai countrycode attribute setelah diubah:', phoneInput.getAttribute('countrycode')); // 13
+      phoneInput.removeAttribute('countrycode');
+      console.log('nilai countrycode attribute setelah dihapus:', phoneInput.getAttribute('countrycode')); // null
+      // elem.attributes (koleksi attribute dari sebbuah element termasuk non standart)
+      for (let {name, value} of phoneInput.attributes) console.log(`${name}: ${value}`);
+      // attribute element bersifat case insensitive dan selalu bernilai string
+      phoneInput.getAttribute('TyPe'); // text
+      // attribute data-* pada element disimpan semua pada object element.dataset
+      for (let elem of document.querySelectorAll('*[data-background-color]')) {
+        // ubah warna background sesuai attribute
+        elem.style.backgroundColor = elem.dataset.backgroundColor; // background-color diubah menjadi backgroundColor (camelCased)
+      }
+      // nilai dataset juga bisa diubah
+      document.querySelector('div').dataset.backgroundColor = 'cyan';
+      // mengubah warna untuk eksternal link (tidak diawali "http://localhost:" dan memiliki "://" didalamnya)
+      let selector = 'a[href*="://"]:not([href^="http://localhost:"])';
+      document.querySelectorAll(selector).forEach(link => link.style.color = 'orange');
+      // attribute value pada input menyinkronkan nilai ke property value, namun tidak sebaliknya
+      console.log(`sebelum attribute value ditulis:\nnilai pada atribut: ${phoneInput.getAttribute('value')}\nNilai pada property: ${phoneInput.value}`); // 123, 123
+      phoneInput.setAttribute('value', '110');
+      console.log(`setelah attribute value ditulis:\nnilai pada atribut: ${phoneInput.getAttribute('value')}\nNilai pada property: ${phoneInput.value}`); // 110, 110
+      phoneInput.value = '112'; // nilai pada attribute tidak di sinkronkan
+      console.log(`setelah property value ditulis:\nnilai pada atribut: ${phoneInput.getAttribute('value')}\nNilai pada property: ${phoneInput.value}`); // 110, 112
+    </script>
+  </body>
+</html>
