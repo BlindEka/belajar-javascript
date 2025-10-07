@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar manipulasi dokumen html</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <ul id="main-menu">
+      <li>Ayam goreng</li>
+      <li>Bebek bakar</li>
+      <li>Tempe orek</li>
+      <li>Telur balado</li>
+      <li>Kangkung</li>
+    </ul>
+    <h2>Minuman</h2>
+    <ul>
+      <li>Jus lemon</li>
+      <li>Jus alpukat</li>
+      <li>Jus jeruk</li>
+      <li>kopi espresso dingin</li>
+      <li>kopi hitam</li>
+    </ul>
+    <h2>Makanan pendamping</h2>
+    <ul>
+      <li>sambal hijau</li>
+      <li>sambal goreng</li>
+      <li>kerupuk udang</li>
+      <li>rebon tabur</li>
+    </ul>
+    <script>
+      "use strict";
+      // node.before/after(...nodes) (menyisipkan nodes sebelum/sesudah node)
+      let mainMenu = document.getElementById('main-menu'),
+      mainMenuTitle = document.createElement('h2');
+      mainMenuTitle.textContent = 'main menu';
+      mainMenu.before(mainMenuTitle); // menambahkan judul sebelum list
+      document.querySelectorAll('body > ul').forEach(ul => ul.after(document.createElement('hr'))); // menambahkan pemisah antara list
+      // elem.append/prepend(...nodes) (menyisipkan nodes ke dalam elem sesudah element terakhir/sebelum node pertama)
+      let mainTitle = document.createElement('h1'),
+      mainParagraph = document.createElement('p'),
+      footer = document.createElement('footer');
+      mainTitle.textContent = 'Menu Restoran';
+      mainParagraph.textContent = 'Berikut ini merupakan menu yang disediakan di restoran ini.'
+      document.body.prepend(mainTitle, mainParagraph);
+      footer.innerHTML = `<p id="closing-paragraph">Hubungi kami di <strong>nusantara@food.mail.com</strong> untuk order makanan.</p>`;
+      document.body.append(footer);
+      // node.replaceWith(newNode) (menempatkan dan mengganti node dengan newNode pada posisi yg sama)
+      document.getElementById('closing-paragraph').replaceWith('Copyright Nusantara restaurant, since 2015.'); // string otomatis diubah ke text node
+      // elem.insertAdjacentHTML(position, html) (menyisipkan string kode html, position harus bernilai string antara "beforebegin", "afterbegin", "beforeend", "afterend")
+      footer.insertAdjacentHTML("beforebegin", `<h2 id="contact-title">Contact</h2>`); // menyisipkan kode html sebelum element footer
+      // menyisipkan kode html setelah element h2 "Contact"
+      document.getElementById('contact-title').insertAdjacentHTML("afterend", `
+      <p>Silahkan hubungi kami melalui:</p>
+        <ul id="contact-list">
+          <li>Email: nusantara.food@gmail.com</li>
+          <li>Instagram: @nusantara_food</li>
+        </ul>`);
+      document.getElementById('contact-list').insertAdjacentHTML("beforeend", "<li>Facebook: Nusantara food restaurant</li>"); // menyisipkan kode html sesudah pembuka tag list
+      document.getElementById('contact-list').insertAdjacentHTML("afterbegin", "<li>Whatsapp: 081223732242</li>"); // menyisipkan kode html sebelum penutup tag list
+      // node.remove() (menghapus node dari dokumen)
+      document.body.insertAdjacentHTML("afterbegin", '<h1 id="duplicateH1">judul sementara</h1>');
+      setTimeout(() => duplicateH1.remove(), 6000); // menghapus element setelah 6 detik
+      // menukar posisi element tidak perlu remove terlebih dahulu
+      setTimeout(() => mainTitle.after(duplicateH1), 2000);
+      setTimeout(() => mainTitle.before(duplicateH1), 4000);
+      // elem.cloneNode(true/false) (menduplikat elem, jika diberi argumen true maka node didalamnya akan ikut di sertakan. Jika false hanya element dan attribute nya)
+      let cloneContactList = document.getElementById('contact-list').cloneNode(true);
+      document.getElementById('contact-list').outerHTML == cloneContactList.outerHTML; // true
+      // objek DocumentFragment
+      let fruits = ['apple', 'banana', 'cherry'];
+      let ul = document.createElement('ul'),
+      fragment = new DocumentFragment();
+      let getItems = () => fruits.map(fruit => {
+        let li = document.createElement('li');
+        li.textContent = fruit;
+        return li;
+      });
+      fragment.append(...getItems());
+      ul.append(fragment); // sama dengan ul.append(...getItems()
+      let ul2 = document.createElement('ul');
+      ul2.append(...getItems());
+      console.log(ul.outerHTML == ul2.outerHTML); // true
+      // method method lama, semua nya mengembalikan item yg disisipkan, diganti dan dihapus
+      let items = getItems();
+      ul.appendChild(items[0]); // sama dengan ul.append(items[0])
+      ul.insertBefore(items[1], ul.firstChild); // sama dengan ul.prepend(items[1])
+      ul.replaceChild(items[2], ul.firstChild); // sama dengan ul.firstChild.replaceWith(items[2]), argument kedua harus anak langsung dari ul
+      ul.removeChild(ul.firstChild); // sama dengan ul.firstChild.remove()
+      // document.write(html) (menulis html di bagian akhir, jika digunakan setelah halaman telah dimuat sepenuhnya akan mengganti halaman dengan html sepenuhnya)
+      let currentLastChild = document.body.lastChild;
+      document.write(`<p id="helloWorld">hello world</p>`);
+      console.log(currentLastChild.nextSibling.id); // helloWorld
+      function createTree(container, data, treeTitle, headingLevel=2) {
+        headingLevel = (typeof(headingLevel) != "number" || headingLevel < 1 || headingLevel > 6) ? 2 : headingLevel;
+        let ul = document.createElement('ul');
+        if (treeTitle) container.insertAdjacentHTML("beforeend", `<h${headingLevel}>${treeTitle}:</h${headingLevel}>`);
+        for (let [key, value] of Object.entries(data)) {
+          let li = document.createElement('li');
+          if (Object.keys(value).length) createTree(li, value, key, headingLevel < 6 ? headingLevel + 1 : headingLevel)
+          else li.textContent = key;
+        ul.append(li);
+        }
+        container.append(ul);
+      }
+      let treeData = {
+        makanan: {
+          buah: {
+            apel: {},
+            nanas: {},
+            jeruk: {},
+          },
+          sayur: {
+            kubis: {},
+            wortel: {},
+            kangkung: {},
+          }
+        },
+        minuman: {
+          jus: {
+            pisang: {},
+            alpukat: {},
+            lemon: {},
+          },
+          kopi: {
+            dingin: {
+              luwak: {},
+              arabica: {},
+            },
+            panas: {
+              espresso: {},
+              americano: {},
+              black: {},
+            }
+          }
+        }
+      };
+      let treeContainer = document.createElement('div');
+      document.body.append(treeContainer);
+      // createTree(treeContainer, treeData, 'pohon makanan dan minuman', 3);
+      // fungsi untuk membuat kalender berbentuk element tabel
+      function createCalendar(container, year, month) {
+        let dayOffset = 1,
+        startingDay = new Date(year, month).getDay() , // dimulai dari hari senin
+        currentDate = 1,
+        lastDate = new Date(year, month + 1, 0).getDate(),
+        table = document.createElement('table'),
+        tbody = document.createElement('tbody');
+
+        table.insertAdjacentHTML("afterbegin", `
+          <caption>Kalender tahun ${year} bulan ${month}</caption>
+          <thead><tr>
+            <th>senin</th>
+            <th>selasa</th>
+            <th>rabu</th>
+            <th>kamis</th>
+            <th>jumat</th>
+            <th>sabtu</th>
+            <th>minggu</th>
+          </tr></thead>
+        `);
+
+        while (currentDate <= lastDate) {
+          let tr = document.createElement('tr');
+          while (startingDay ++ < 7 + dayOffset && currentDate <= lastDate) tr.insertAdjacentHTML("beforeend", `<td>${currentDate ++}</td>`);
+          if (startingDay < 7 + dayOffset) tr.insertAdjacentHTML("beforeend", `<td colspan="${6 + dayOffset - startingDay}"></td>`); // berikan colspan untuk tanggal bulan berikutnya
+          if (startingDay >= 7 + dayOffset && tr.cells.length < 7) tr.insertAdjacentHTML("afterbegin", `<td colspan="${7 - tr.cells.length}"></td>`); // berikan colspan untuk tanggal bulan sebelumnya
+          tbody.append(tr);
+          startingDay = 0 + dayOffset;
+        }
+        table.append(tbody);
+        container.append(table);
+        return table;
+      }
+      let now = new Date();
+      createCalendar(document.body, now.getFullYear(), now.getMonth());
+      // membuat jam berjalan
+      let clockContainer = document.createElement('div');
+      clockContainer.insertAdjacentHTML("afterbegin", `<h2>Jam</h2><p><span id="hours">${now.getHours()}</span>:<span id="minutes">${now.getMinutes()}</span>:<span id="seconds">${now.getSeconds()}</span>.<span id="milliseconds">${now.getMilliseconds()}</span></p>`);
+      document.body.append(clockContainer);
+      void function updateTime() { // jalankan IIFE
+        const now = new Date();
+        let [hours, minutes, seconds, milliseconds] = [now.getHours(), now.getMinutes(), now.getSeconds(), now.getMilliseconds()];
+        [hours, minutes, seconds] = [hours, minutes, seconds].map(unit => (unit < 10) ? '0' + unit: unit);
+        document.getElementById('hours').textContent = hours;
+        document.getElementById('minutes').textContent = minutes;
+        document.getElementById('seconds').textContent = seconds;
+        document.getElementById('milliseconds').textContent = milliseconds;
+        setTimeout(updateTime, 1)
+      }();
+    </script>
+  </body>
+</html>
