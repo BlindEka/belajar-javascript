@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar memanipulasi element styling</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        background-color: skyblue;
+      }
+      h1 {
+        text-transform: uppercase;
+        font-weight: bold;
+        color: lemonchiffon;
+        font-size: 2em;
+      }
+      .highlighted {
+        background-color: white;
+        color: black;
+      }
+      .hidden {
+        display: none;
+      }
+      .italic {
+        font-style: italic;
+      }
+      .bold {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>selamat datang</h1>
+    <main>
+      <div id="content-1" class="highlighted">
+        <p>sebuah konten disini</p>
+      </div>
+      <div id="content-2">
+        <p>konten yg terkadang menghilang</p>
+      </div>
+    </main>
+    <script>
+      "use strict";
+      // elem.className (bernilai string untuk nama kelas css yg digunakan elem, writable)
+      let div1 = document.getElementById('content-1'),
+      div2 = document.getElementById('content-2');
+      console.log('kelas css pada element div1 saat ini:', div1.className); // highlighted
+      // elem.classList (berisi koleksi kelas css yg digunakan, memiliki method add/remove(className) untuk menambah/menghapus dan toggle(className) untuk menyalakan/mematikan kelas css, mengembalikan state true/false untuk aktif/tidak aktif)
+      div1.classList.add('italic');
+      console.log('kelas css pada element div1 saat ini:', div1.className); // highlighted italic
+      div1.classList.remove('highlighted');
+      console.log('kelas css pada element div1 saat ini:', div1.className); // italic
+      setInterval(() => div2.classList.toggle('hidden'), 2000); // menyalakan/mematikan class hidden setiap 2 detik
+      // elem.classList.contains(className) untuk memeriksa keberadaan kelas pada elem
+      console.log('kelas highlighted ada pada div1:', div1.classList.contains('highlighted')); // false
+      // elem.style objek mempresentasikan style attribute pada elem
+      document.body.style.backgroundColor = "lightgray"; // background-color menjadi backgroundColor (camelCased)
+      document.body.style.webkitBorderRadius = '5px'; // browser prefixed property -webkit-border-radius menjadi WebkitBorderRadius (capitalized CamelCased)
+      document.body.style.webkitBorderRadius = ''; // mereset nilai
+      // menggunakan elem.style.cssText untuk mendefinisikan style
+      let div3 = document.createElement('div');
+      div3.style.cssText = "color: teal; background-color: skyblue;"
+      console.log(div3.style.color); // teal
+      // getComputedStyle(elem, [pseudo]) (mendapatkan style css setelah semua style dan classes diterapkan)
+      let h1 = document.querySelector('h1');
+      let computedStyle = getComputedStyle(h1);
+      console.log(`h1 color dari elem.style: "${h1.style.color}"`); // ""
+      console.log(`h1 color dari computed style: "${computedStyle.color}"`); // "rgb(255, 250, 205)"
+      console.log(computedStyle.fontSize); // 2em dalam unit px setelah dikalkulasi
+      // fungsi untuk menampilkan notifikasi
+      function showNotification({html, className, ...style}, duration=1500) {
+        let container = document.createElement('div');
+        container.innerHTML = html;
+        container.className = className;
+        Object.assign(container.style, style);
+        document.body.append(container);
+        setTimeout(container.remove.bind(container), duration);
+        return container;
+      }
+      // tampilkan notifikasi selama 3 detik
+      let notification = showNotification({
+        html: "Anda telah memenangkan hadiah dari PT Jaya Abadi!",
+        className: "highlighted",
+        top: "30%",
+        left: "25%",
+        right: "25%",
+        position: "fix"
+      }, 3000);
+      console.log(notification.style.top); // 30%
+    </script>
+  </body>
+</html>
