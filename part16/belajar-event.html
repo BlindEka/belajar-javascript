@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar dasar dasar event</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .dropdown-menu {
+        position: relative;
+      }
+      .dropdown-container {
+        transition: 1s all;
+      }
+      .dropdown-container-close {
+        display: none;
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .dropdown-container-open {
+        position: relative;
+        top: 100%;
+      }
+      #typing-status {
+        transition: ease-in all;
+        color: teal;
+      }
+      .carousel {position: relative; border: 3px solid black;}
+      .carousel-btn {position: absolute; top: 50%; z-index: 100;}
+      .carousel-btn-prev {left: 0;}
+      .carousel-btn-next {right: 0;}
+      .carousel-item {display: none; overflow: hidden;}
+      .carousel-item-active {display: block;}
+    </style>
+  </head>
+  <body>
+    <h2>Kirim Pesan</h2>
+    <p id="typing-status" hidden>Anda sedang mengetik</p>
+    <textarea id="message-input" placeholder="Ketik pesan ..."></textarea>
+    <!-- menambahkan event listener melalui element -->
+    <button id="send-btn" onclick="alert('Pesan berhasil dikirim!');document.getElementById('message-input').value = ''; this.disabled = true;" disabled>Kirim pesan</button>
+    <h4><button id="hello-btn">hello world!</button></h4>
+    <h4><button id="click-me-btn">klik saya!</button></h4>
+    <button onclick="document.getElementById('text').hidden = ! document.getElementById('text').hidden">tampilkan / sembunikan Konten</button>
+    <div id="text">Konten disini</div>
+    <div role="button" onclick="this.hidden = true">sembunyikan saya</div>
+    <h2>dropdown menu</h2>
+    <div class="dropdown-menu">
+      <span>Minuman</span>
+      <ul class="dropdown-container">
+        <li>jus alpukat</li>
+        <li>jus jeruk</li>
+        <li>jus mangga</li>
+      </ul>
+    </div>
+    <h2>carousel</h2>
+    <div class="carousel" data-carousel-init-index = "1" data-carousel-auto-slide="2">
+      <button class="carousel-btn carousel-btn-prev">&lt;</button>
+      <button class="carousel-btn carousel-btn-next">&gt;</button>
+      <img class="carousel-item" src="./slide1.jpg" alt="slide 1" />
+      <img class="carousel-item" src="./slide2.jpg" alt="slide 2" />
+      <img class="carousel-item" src="./slide3.jpg" alt="slide 3" />
+      <img class="carousel-item" src="./slide4.jpg" alt="slide 4" />
+    </div>
+    <script>
+      "use strict";
+      // assign event handler ke elem.on[eventName ] untuk menambah event listener
+      let helloBtn = document.getElementById('hello-btn');
+      helloBtn.onclick = () => alert('hello world');
+      // elem.addEventListener(name, handler, option) (menambahkan event listener ke elem, dapat menambahkan lebih dari satu handlers)
+      let handler = e => console.log('hello world');
+      helloBtn.addEventListener("click", handler);
+      document.getElementById('message-input').addEventListener("input", function() {
+        window.userIsTyping = true;
+        document.getElementById("send-btn").disabled = ! this.value; // this bernilai element yg memanggil handler
+        let typingStatus = document.getElementById("typing-status");
+        typingStatus.hidden = false;
+        clearTimeout(window.lastTypingTimer);
+        window.lastTypingTimer = setTimeout(() => typingStatus.hidden = true, 2000);
+      });
+      // gunakan option once=true untuk membuat handler yang jalan hanya sekali
+      let clickMeBtn = document.getElementById('click-me-btn');
+      clickMeBtn.addEventListener("click", e => alert('kamu menekan saya untuk "pertama kali nya"!'), {once: true});
+      clickMeBtn.addEventListener("click", e => alert('kamu telah mengklik saya!'));
+      // menghapus event listeners
+      helloBtn.onclick = null;
+      // elem.removeEventListener(name, handler, option) (menghapus event listener, harus melewatkan objek handler yg sama)
+      helloBtn.removeEventListener("click", handler)
+      // objek event dilewatkan pada handler sbg argumen
+      helloBtn.onclick = e => {
+        console.log(e.type); // click
+        console.log(e.currentTarget); // element yg ditangani, sama seperti this jika handler bukan fungsi arrow
+        console.log(`koordinat: x=${e.clientX}, y=${e.clientY}`); // koordinat kursor relatif pada jendela (window), untuk event pointer
+      };
+      // handler dapat berupa objek
+      handler = {
+        handleEvent(event) { // method ini dipanggil ketika event terpicu
+          console.log('halo, saya handler dipanggil oleh event', event.type);
+        }
+      };
+      helloBtn.addEventListener('click', handler);
+      // menambah event listener dropdown menu
+      Array.from(document.querySelectorAll(".dropdown-container")).filter(container => container.parentElement.classList.contains('dropdown-menu')).forEach(container => {
+        container.classList.add("dropdown-container-close");
+        container.parentElement.addEventListener("click", () => {
+          container.classList.toggle("dropdown-container-open");
+          container.classList.toggle("dropdown-container-close");
+        });
+      });
+      // set up carousel
+      document.querySelectorAll('.carousel').forEach(container => {
+        let index = container.dataset.carouselInitIndex ?? 0;
+        const carouselItem = Array.from(container.querySelectorAll('.carousel-item')),
+        prevBtn = document.querySelector('.carousel-btn-prev'),
+        nextBtn = document.querySelector('.carousel-btn-next');
+        index = (isFinite(index) && 0 <= index && index < carouselItem.length) ? index : 0;
+        carouselItem[index].classList.add('carousel-item-active');
+        prevBtn.hidden = ! (0 <= index - 1);
+        nextBtn.hidden = ! (index + 1 < carouselItem.length);
+        prevBtn.addEventListener('click', e => slide(index - 1, -1));
+        nextBtn.addEventListener('click', e => slide(index + 1, 1));
+        function slide(into, direction) {
+          // siapkan posisi item yg mengganti item yg lama
+          carouselItem[into].style.left = 100 * direction;
+          carouselItem[into].classList.toggle('carousel-item-active');
+          // pindahkan item
+          carouselItem[index].style.left = 100 * -direction;
+          carouselItem[into].style.left = 0;
+          carouselItem[index].classList.toggle('carousel-item-active'); // sembunyikan yg lama
+          index = into;
+          // tampilkan/sembunyikan tombol
+          prevBtn.hidden = ! (0 <= index - 1);
+          nextBtn.hidden = ! (index + 1 < carouselItem.length);
+        }
+        // jalankan auto slide
+        let autoSlideDelay = container.dataset.carouselAutoSlide;
+        if (isFinite(autoSlideDelay)) setTimeout(function autoSlide() {
+          slide(index + 1 < carouselItem.length ? index + 1 : 0, 1);
+          setTimeout(autoSlide, autoSlideDelay * 1000);
+        }, autoSlideDelay * 1000);
+      })
+    </script>
+  </body>
+</html>
