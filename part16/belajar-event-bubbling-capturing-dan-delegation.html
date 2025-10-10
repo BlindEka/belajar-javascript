@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <script src="../latihan/module/random.js"></script>
+    <title>belajar event bubbling, capturing dan delegation</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      table.puzzle td {
+        font-weight: lighter;
+        background-color: skyblue;
+        color: magenta;
+        border: 1px solid white;
+      }
+      .highlighted {
+        font-weight: bolder;
+        background-color: gray;
+        color: white;
+        border: 1px solid orange;
+      }
+      .puzzle {
+        border: 2px dashed white;
+      }
+      .tooltip {position: absolute;}
+    </style>
+  </head>
+  <body>
+    <div onclick="alert('hello world')">
+      klik disini
+      <p>maupun disini sama saja</p>
+      selama event diatur untuk bubbling
+    </div>
+    <hr/>
+    <main id="root">
+      element main (root)
+      <div>
+        element div
+        <p>
+          element p
+          <button id="btn">event target / pemicu event</button>
+          <button id="btn2">event target 2 dengan stopPropagation untuk stop bubbling</button>
+        </p>
+      </div>
+    </main>
+    <h2>game puzzle</h2>
+    <div id="puzzle" class="puzzle"></div>
+    <h2>contoh delegasi event dengan menu</h2>
+    <menu>
+      <!-- menggunakan data-* untuk memberi fungsi untuk menampilkan/menyembunyikan element dengan id nya -->
+      <li role="button" data-toggle-hidden="difficulty-menu">Tampilkan / sembunyikan tingkat kesulitan</li>
+      <menu id="difficulty-menu" hidden>
+        Pilih tingkat kesulitan puzzle
+        <li role="button" data-difficulty="easy" selected>mudah</li>
+        <li role="button" data-difficulty="normal">normal</li>
+        <li role="button" data-difficulty="hard">sulit</li>
+      </menu>
+    </menu>
+    <h2>sortable table</h2>
+    <table data-sortable>
+      <thead>
+        <tr>
+          <th data-type="string">nama</th>
+          <th data-type="number">umur</th>
+        </tr>
+      </thead>
+      <tbody id="user-data"></tbody>
+    </table>
+    <script>
+      "use strict";
+      // saat sebuah event terpicu, event mengalami 3 fase yaitu capturing, target, dan bubbling
+      for (let element of document.querySelectorAll('main, main >*')) {
+        element.addEventListener('click', e => console.log(`capturing: handler ini dijalankan pada tag ${e.currentTarget.tagName}, dalam fase ${e.eventPhase}, element yang memicu event ini adalah ${e.target.tagName}`), true); // handler ini akan dijalankan saat event turun menuju target (element pemicu event)
+        element.addEventListener('click', e => console.log(`bubbling: handler ini dijalankan pada tag ${e.currentTarget.tagName}, dalam fase ${e.eventPhase}, element yang memicu event ini adalah ${e.target.tagName}`), false); // sedangkan ini saat event naik lagi ke atas
+      }
+      // event.stopPropagation / event.stopImmediatePropagation (menghentikan event bubbling ke anchestor, jika immediate maka menghentikan juga menjalankan handler berikutnya untuk event ini)
+      let btn2 = document.getElementById('btn2');
+      btn2.addEventListener('click', e => {
+        console.log('halo saya akan stop event bubbling ke anchestor element')
+        e.stopPropagation();
+      });
+      btn2.addEventListener('click', e => {
+        console.log('halo saya akan stop event propagation ke handler selanjutnya')
+        e.stopImmediatePropagation();
+      });
+      btn2.addEventListener('click', e => console.log('saya tidak pernah dijalankan'));
+      let handler = e => console.log('sedangkan ini jalan karena dalam fase capturing bukan bubbling');
+      btn2.addEventListener('click', handler, true);
+      // menghapus event listener dengan capture: true harus memiliki objekk handler yg sama dengan capture yg sama juga (true)
+      btn2.removeEventListener('click', handler, true);
+      function* seq(start, end) {
+        for (let i = start; i <= end; i ++) yield i;
+      }
+      function createPuzzle(size=3) {
+        const table = document.createElement("table"),
+        tbody = document.createElement("tbody");
+        table.border = 1;
+        let numbers = random.shuffle(Array.from(seq(1, size * size )));
+        for (let row = 0; row < size; row ++) {
+          const tr = document.createElement("tr");
+          tr.insertAdjacentHTML("afterbegin", numbers.splice(0, size).map(num => `<td ${num == 1 ? 'class="highlighted"' : ''}>${num}</td>`).join(''));
+          tbody.append(tr);
+        }
+        table.append(tbody);
+        addPuzzleEvent(table);
+        return table;
+      }
+      // event delegation
+      function addPuzzleEvent(puzzle) {
+        puzzle.addEventListener("click", e => {
+          // menambahkan satu event listener pada table sbg ganti menambahkan satu persatu listener ke td, memanfaatkan bubbling
+          let selected = e.target.closest('td');
+          if (! selected) return; // yg ditekan bukan potongan puzzle
+          let highlighted = e.currentTarget.querySelector('.highlighted');
+          let [highlightedRowIndex, highlightedCellIndex, selectedRowIndex, selectedCellIndex] = [highlighted.closest('tr').rowIndex, highlighted.cellIndex, selected.closest('tr').rowIndex, selected.cellIndex];
+          console.log(`${highlightedRowIndex - 1} <= ${selectedRowIndex} <= ${highlightedRowIndex + 1}`);
+          if ( // potongan puzzle yg dipilih harus 1 kali cell arah vertical/horizontal
+            highlightedRowIndex - 1 <= selectedRowIndex && selectedRowIndex <= highlightedRowIndex + 1 && highlightedCellIndex == selectedCellIndex
+            ||
+            highlightedCellIndex - 1 <= selectedCellIndex && selectedCellIndex <= highlightedCellIndex + 1 && highlightedRowIndex == selectedRowIndex
+          ) {
+            [selected.textContent, highlighted.textContent] = [highlighted.textContent, selected.textContent];
+            highlighted.classList.remove('highlighted');
+            selected.classList.add('highlighted');
+            // cek apakah puzzle sudah selesai
+            let currentOrder = Array.from(e.currentTarget.querySelectorAll('td')).map(td => +td.textContent);
+            let numbers = Array.from(seq(1, currentOrder.length));
+            if (numbers.every((num, index) => num == currentOrder[index])) alert('selamat kamu berhasil menyelesaikannya!');
+          }
+        });
+      }
+      let puzzle = createPuzzle(3);
+      document.getElementById("puzzle").append(puzzle);
+      document.getElementById('difficulty-menu').addEventListener("click", e => {
+        let difficulty = {
+          easy: 3,
+          normal: 5,
+          hard: 7,
+        };
+        let selectedDifficulty = e.target.dataset.difficulty;
+        if (selectedDifficulty) document.getElementById('puzzle').querySelector('table').replaceWith(createPuzzle(difficulty[selectedDifficulty]));
+      })
+      // memberi event listener untuk semua element dengan data-toggle-hidden
+      document.body.querySelectorAll('*[data-toggle-hidden]').forEach(elem => {
+        let target = document.getElementById(elem.dataset.toggleHidden);
+        if (target) elem.addEventListener('click', e => target.hidden = ! target.hidden);
+      });
+      // buat delegasi event untuk sortable table
+      document.querySelectorAll('table[data-sortable]').forEach(table => table.addEventListener("click", e => {
+        const th = e.target.closest('th');
+        if (! th) return;
+        const tbody = table.tBodies[0];
+        let rows = Array.from(tbody.rows);
+        let sortedRows = rows.slice().sort((r1, r2) => th.dataset.type ?? 'string' == 'string' ? r1.cells[th.cellIndex].textContent.localeCompare(r2.cells[th.cellIndex].textContent) : (+r1.cells[th.cellIndex].textContent < +r2.cells[th.cellIndex].textContent) ? -1 : +(+r1.cells[th.cellIndex].textContent > +r2.cells[th.cellIndex].textContent));
+        if (table.dataset.lastThIndex == th.cellIndex) sortedRows.reverse();
+        tbody.innerHTML = '';
+        rows.forEach((row, index) => tbody.append(sortedRows[index]));
+        table.dataset.lastThIndex = (table.dataset.lastThIndex == th.cellIndex) ? -1 : th.cellIndex;
+      }));
+      // isi data tabel user
+      let users = [
+        {name: 'sarah', age: 20},
+        {name: 'max', age: 22},
+        {name: 'joseph', age: 19},
+        {name: 'rose', age: 18},
+        {name: 'jessica', age: 17},
+        {name: 'andy', age: 25},
+      ];
+      users.forEach(user => document.getElementById('user-data').insertAdjacentHTML("beforeend", `<tr><td>${user.name}</td><td>${user.age}</td></tr>`));
+    </script>
+  </body>
+</html>
