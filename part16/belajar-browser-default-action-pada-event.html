@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar browser default action pada event</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .editable-list {
+        background-color: skyblue;
+        color: white;
+        border: 2px solid white;
+        border-radius: 25%;
+      }
+      .editable-list > li {background-color: magenta;color: white;}
+      .editable-list > li.selected {background-color: darkgreen; color: lightyellow;}
+    </style>
+  </head>
+  <body>
+    <h2>konfirmasi mengunjungi link</h2>
+    <menu id="links" data-confirm-link="Apakah anda yakin ingin mengunjungi link {href} ?">
+      <li><a href="www.youtube.com">youtube</a></li>
+      <li><a href="www.google.com">Google</a></li>
+      <li><a href="https://mail.google.com">gmail</a></li>
+      <li><a href="https://translate.google.com>google translate"</li>
+    </menu>
+    <h2>memblokir context menu</h2>
+    <ul oncontextmenu="alert('maaf, menu konteks dinonaktifkan.'); return false;">
+      silahkan pilih situs layanan penerjemah:
+      <li><a href="https://translate.google.com">google translate</a></li>
+      <li><a href="https://translate.yandex.com">yandex translate</a></li>
+      <li><a href="https://bing.com/translator">bing translator</a></li>
+      <li><a href="https://deepl.com/translator">deepL translator</a></li>
+    </ul>
+    <h2>membuat context menu khusus</h2>
+    <ul id="list-buah" class="editable-list">
+      list buah:
+      <p>silahkan hapus item duplikat dan yg bukan buah.
+      Gunakan klik kanan pada item lalu hapus satu persatu atau pilih terlebih dahulu item dan klik kanan pada list untuk menu konteks lainnya.</p>
+
+      <li>apel</li>
+      <li>pisang</li>
+      <li>pisang</li>
+      <li>tempe</li>
+      <li>jeruk</li>
+      <li>jambu</li>
+      <li>nanas</li>
+      <li>ayam goreng</li>
+      <li>manggis</li>
+      <li>nasi goreng</li>
+    </ul>
+    <menu id="menu">
+      <button oncontextmenu="document.getElementById('my-context-menu') ? document.getElementById('my-context-menu').remove() : this.insertAdjacentHTML('afterend', `<div id='my-context-menu'>ini context menu custom</div>`); return false;">klik kanan saya</button>
+    </menu>
+    <script>
+      "use strict";
+      // event.preventDefault() (menghentikan event untuk menjalankan akksi bawaan browser)
+      document.querySelectorAll('*[data-confirm-link]').forEach(elem => elem.addEventListener("click", e => {
+        let a = e.target.closest('a');
+        if (! a) return;
+        if (! confirm(e.currentTarget.dataset.confirmLink?.replace('{href}', a.getAttribute('href')))) e.preventDefault(); // mencegah tindakan default untuk click element a
+        e.defaultPrevented; // true jika e.preventDefault() dipanggil
+      }));
+      // custom context menu
+      document.querySelectorAll('.editable-list').forEach(list => {
+        list.addEventListener("click", e => {
+          list.querySelectorAll('li.selected').forEach(li => li.classList.remove('selected'));
+          list.querySelector('.context-menu')?.remove?.();
+          let target = e.target.closest('li');
+          target?.classList?.add?.('selected');
+        },
+        // gunakan passive: true pada option untuk memberitahu bahwa listener ini tidak mencegah tindakan default
+        // sehingga browser bisa segera menjalankan tindakan default, seperti gulir layar untuk event touch di mobile device
+        {passive: true});
+        // penampil context menu
+        list.oncontextmenu = e => {
+          list.querySelector('.context-menu')?.remove?.();
+          let target = e.target.closest('li, .editable-list');
+          if (target.tagName == "LI") {
+            let menu = createMenu(target, [
+              {textContent: 'pilih item', action: 'selectItem'},
+              {textContent: 'hapus item', action: 'deleteItem'},
+            ]);
+            target.append(menu);
+          }
+          if (target.classList.contains('editable-list')) {
+            let menu = createMenu(target, [
+              {textContent: 'hapus item terpilih', action: 'deleteSelectedItem'}
+            ]);
+            target.prepend(menu);
+          }
+          return false; // sama dengan e.preventDefault, hanya bekerja pada listener property dom / attribute element
+        };
+      });
+      function createMenu(target, menuItems) {
+        let menu = document.createElement('menu');
+        menu.onclick = e => {
+          let action = actions[e.target.getAttribute('data-action')];
+          action?.(target);
+          if (action) menu.remove();
+          e.stopPropagation();
+        };
+        for (let item of menuItems) {
+          menu.insertAdjacentHTML("beforeend", `<li data-action="${item.action}">${item.textContent}</li>`);
+        }
+        return menu;
+      }
+      let actions = {
+        selectItem: target => target.classList.add('selected'),
+        deleteItem: target => target.remove(),
+        deleteSelectedItem: target => target.closest('.editable-list').querySelectorAll('.selected').forEach(item => item.remove()),
+      }
+    </script>
+  </body>
+</html>
