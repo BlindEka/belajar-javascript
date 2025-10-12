@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar membuat custom event dan dispatching event</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      #notification-center {
+        position: fixed;
+        top: 5%;
+        right: 5%;
+        background-color: rgba(0, 0, 0, 0);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        list-style: none;
+        transition: 2s all;
+      }
+      .notification-item {
+        flex: 1;
+        color: white;
+        position: relative;
+      }
+      .notification-info {background-color: aqua;}
+      .notification-warning {background-color: lemonchiffon;}
+      .notificationn-danger {background-color: darkred;}
+      .notification-close-btn {
+        color: white;
+        background-color: rgba(0, 0, 0, 0);
+        font-weight: bolder;
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
+      .notification-time {position: absolute; top: 0; left: 0;}
+      .notification-text {text-overflow: ellipsis; position: relative; top: 50%;}
+    </style>
+  </head>
+  <body>
+    <div id="notification-center" hidden></div>
+    <button id="hello-world">hello world</button>
+    <h2>notifikasi</h2>
+    <form oninput="this.submitBtn.disabled = !this.textInput.value" onsubmit="notify(this.textInput.value, +this.notificationType.value, this); this.textInput.value = ''; this.submitBtn.disabled = true; return false">
+      <p>masukan teks untuk notifikasi</p>
+      <fieldset>
+        <label>Text notifikasi<br/>
+          <input placeholder="masukan teks notifikasi..." name="textInput" />
+        </label>
+        <br/>
+        <label>notification type
+        <select name="notificationType">
+          <option value="0">info</option>
+          <option value="1">warning</option>
+          <option value="2">danger</option>
+        </select>
+        </label>
+        <br/>
+        <button type="submit" name="submitBtn" disabled>buat notifikasi</button>
+      </fieldset>
+    </form>
+    <h3>filter notifikasi</h3>
+    <select id="notification-filter">
+      <option value="0,1,2">tampilkan semua notifikasi</option>
+      <option value="1,2">tampilkan hanya warning dan danger saja</option>
+      <option value="2">tampilkan danger saja</option>
+      <option value="1">tampilkan warning saja</option>
+      <option value="0">tampilkan info saja</option>
+    </select>
+    <h4><button id="click-me-btn">klik saya</button></h4>
+    <script>
+      "use strict";
+      // new Event(type, options{bubbles: true/false, cancelable: true/false}) (membuat objek event baru, jika option bubbles true maka event akan bubbling, jika cancelable maka event.preventDefault bekerja)
+      document.addEventListener('click', e => e.target.id == 'hello-world' && console.log('hello world'));
+      let event = new Event("click", {bubbles: true}); // bubbles: true agar event sampai ke root
+      console.log('apakah event ini terpercaya:', event.isTrusted); // bernilai false untuk event yg dihasilkan oleh script
+      document.getElementById('hello-world').dispatchEvent(event); // memicu event click pada tombol hello world
+      // membuat custom event dengan new CustomEvent(name, {bubbles, cancelable, detail: {...}})
+      function notify(info, type=0, target=document) {
+        const event = new CustomEvent('new-notification', {
+          bubbles: true,
+          cancelable: true,
+          detail: { // menambahkan detail event
+            arriveTime: new Date(),
+            id: notify._lastId = (notify._lastId ?? 0) + 1,
+            info, type
+          }
+        });
+        if (target.dispatchEvent(event)) {
+          // tindakan default, dijalankan jika event.preventDefault tidak dipanggil
+          showNotification(event.detail);
+        }
+      }
+      function showNotification({id, type, info, arriveTime}) {
+        // tampilkan notifikasi
+        const notificationTypes = ['info', 'warning', 'danger'],
+        container = document.getElementById('notification-center');
+        container.hidden = false;
+        container.insertAdjacentHTML("afterbegin", `
+        <li data-notification-id="${id}" class="notification-item notification-${notificationTypes[type]}">
+          <button class="notification-close-btn" aria-label="close notification">X</button>
+          <time class="notification-time">${arriveTime.getHours()}:${arriveTime.getMinutes()}</time>
+          <p class="notification-text">${info}</p>
+        </li>`);
+        if (type < 2) setTimeout(() => document.getElementById('notification-center').querySelector(`li[data-notification-id="${id}"]`).remove(), type == 0 ? 5000 : 10000);
+      }
+      document.getElementById('notification-center').addEventListener("click", e => e.target.nodeName == "BUTTON" && e.target.closest('li').remove());
+      function closeNotification(id) {
+        document.querySelector(`#notification-center li[data-notification-id="${id}"]`);
+        if (! document.querySelector('#notification-center > li')) document.getElementById('notification-center').hidden = true;
+      }
+      // tambahkan event listener yg menangkap event new-notification untuk filter notifikasi
+      document.addEventListener("new-notification", e => {
+        const types = document.getElementById('notification-filter').value.split(',').map(t => +t);
+        console.log('Telah menerima notifikasi baru dengan id:', e.detail.id);
+        if (! types.includes(e.detail.type)) {
+          // block notifikasi
+          e.preventDefault();
+          console.log(`Notifikasi telah diblokir:\n${Object.entries(e.detail).map(([k,v]) => `${k}: ${v}`).join('\n')}`);
+        }
+      });
+      // event diproses secara synchronous dalam antrean
+      document.getElementById('click-me-btn').addEventListener("click", e => {
+        // event yg dipicu di dalam event lainnya tidak akan menunggu antrean terlebih dahulu
+        console.log('step 1');
+        document.dispatchEvent(new CustomEvent("log", {bubbles: true, detail: {text: 'step 2'}})); // dijalankan secepatnya
+        setTimeout(() => document.dispatchEvent(new CustomEvent("log", {bubbles: true, detail: {text: 'step 3'}}))); // agar tidak dijalankan langsung dan memblokir event yg sedang dijalankan
+        console.log('step 4');
+        // output: step 1, 2, 4, 3
+      })
+      document.addEventListener("log", e => console.log(e.detail.text));
+    </script>
+  </body>
+</html>
