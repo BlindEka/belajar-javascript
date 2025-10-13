@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar mouse events</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .file-manager {
+        background-color: brown;
+        color: white;
+        border: 2em solid darkorange;
+        border-radius: 20%;
+      }
+      .file-manager > li {background-color: orange;}
+      .file-manager > li[name*="context-menu"] {background-color: blue;}
+      .file-manager mark {background-color: lightgreen; font-weight: bold;}
+      .file-manager-curr-dir {text-decoration: overline underline; text-overflow: ellipsis; font-style: italic;}
+    </style>
+  </head>
+  <body>
+    <section>
+      <h2>File manager</h2>
+      <menu id="file-manager" class="file-manager">
+        <p>directory saat ini: <span class="file-manager-curr-dir"></span></p>
+      </menu>
+    </section>
+    <script>
+      "use strict";
+document.getElementById('file-manager').dataset.rootDir = JSON.stringify({content: {
+  folder1: {
+    fileType: 'folder',
+    content: {
+      'contoh sub folder': {fileType: 'folder', content: {
+        'my app.js': {fileType: 'file'}
+      }},
+      'contoh gambar.jpg': {fileType: 'file'},
+      'contoh text file.txt': {fileType: 'file'},
+    }
+  },
+  'list makanan enak.txt': {fileType: 'file'},
+  'python.exe': {fileType: 'file'},
+}});
+      document.querySelectorAll('.file-manager[data-root-dir]').forEach(container => {
+        const root = JSON.parse(container.dataset.rootDir),
+        currentPath = container.dataset.initPath ?? '';
+        renderPath(container, root, currentPath);
+        container.addEventListener("click", e => handleClick(e, container));
+        container.addEventListener("dblclick", e => e.target.closest('li')?.dataset?.fileType == 'folder' && renderPath(container, root, e.target.closest('li').dataset.filePath));
+        container.addEventListener("contextmenu", e => e.target.closest('li:not([name="context-menu"])') && e.target.closest('li:not([name="context-menu"])').dispatchEvent(new MouseEvent("click", {bubbles: true, button: 2}))); // meneruskan event contextmenu pada item file sbg klik kanan pada file
+      });
+      function handleClick(e, root) {
+        const target = e.target.closest('li, menu');
+        if (! target) return;
+        switch(true) {
+          case !!target.getAttribute('name'):
+            if (e.button == 2) break;
+            let name = target.getAttribute('name').replace('context-menu-', '');
+            if (name == 'del-btn') {
+              alert('maaf, saat ini belum mendukung operasi hapus.');
+            }
+            if (name == 'select-btn') (e.currentTarget.querySelector(`li[data-file-path="${target.dataset.targetPath}"] > mark`)) ? deselectFile(e.currentTarget.querySelector(`li[data-file-path="${target.dataset.targetPath}"]`)) : selectFile(e.currentTarget.querySelector(`li[data-file-path="${target.dataset.targetPath}"]`));
+            break;
+          case e.button == 0 && target.tagName == 'LI': // button 0 = klik kiri mouse
+            // jika click dibarengi dengan ctrl/cmd key select/deselect file tanpa deselect file lainnya
+            if (e.ctrlKey || e.metaKey) (target.querySelector('mark')) ? deselectFile(target) : selectFile(target)
+            else {
+              e.currentTarget.querySelectorAll('mark').forEach(f => deselectFile(f.parentElement));
+              selectFile(target);              
+            }
+            break;
+          case e.button == 0:
+            e.currentTarget.querySelectorAll('mark').forEach(f => deselectFile(f.parentElement));
+            break;
+          case e.button == 2 &&  target?.tagName == 'LI': 
+            // tampilkan konteks menu file
+            target.insertAdjacentHTML("afterbegin", `
+              <li name="context-menu-select-btn" data-target-path="${target.dataset.filePath}">${target.querySelector('mark') ? 'batal pilih item' : 'pilih item'}</li>
+              <li name="context-menu-del-btn">${e.currentTarget.querySelectorAll('li > mark').length > 1 ? 'hapus semua item terpilih' : 'hapus item ini'}</li>`);
+            return e.preventDefault();
+          case e.button == 2 && target?.tagName == 'MENU':
+            // tampilkan context menu umum
+            break;
+        }
+        e.currentTarget.querySelectorAll('li[name*="context-menu"]').forEach(li => li.remove()); // menghapus context menu yg terbuka
+      }
+      function renderPath(container, root, path) {
+        const splittedPath = path.split('/');
+        path = '';
+        for (let p of splittedPath.slice(1)) {
+          if (! (p in root.content) || root.content[p]?.fileType != 'folder' || ! root.content[p].content) break;
+          root = root.content[p];
+          path += `/${p}`;
+        }
+        container.innerHTML = '';
+        for (let [k, v] of Object.entries(root.content)) container.insertAdjacentHTML("beforeend", `
+          <li data-file-type="${v.fileType ?? 'file'}" data-file-path="${path + '/' + k}">${k}</li>
+          `);
+        if (path.split('/').length > 1) container.insertAdjacentHTML("afterbegin", `<li data-file-type="folder" data-file-path="${path.split('/').slice(0, -1).join('/')}">../</li>`);
+        container.insertAdjacentHTML("afterbegin", `<p>Current directory: <span class="file-manager-curr-dir">${path || '/'}</span></p>`);
+        container.dataset.currentPath = path ?? '/';
+      }
+      function selectFile(li) {li.innerHTML = `<mark>${li.innerHTML}</mark>`}
+      function deselectFile(li) {li.querySelector('mark').outerHTML = li.querySelector('mark').innerHTML;}
+    </script>
+  </body>
+</html>
