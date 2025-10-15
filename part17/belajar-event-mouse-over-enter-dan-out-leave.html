@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar event mouse over/enter dan out/leave</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      p {margin: 250px;}
+      .tooltip {
+        background-color: gray;
+        color: white;
+        border-radius: 10%;
+        text-overflow: ellipsis;
+        transition: 1s all;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>tooltip dengan event mouseover</h2>
+    <p>ssilahkan hampiri tombol berikut untuk melihat tooltip</p>
+    <ul>
+      <li data-tooltip="tombol ini diberi event listener mouseenter"><button onmouseenter="this.dataset.visitCount = (+this.dataset.visitCount || 0) + 1;this.textContent = `terima kasih telah mengunjungi tombol ini sebanyak ${this.dataset.visitCount} kali!`">kunjungi saya</button></li>
+      <li data-tooltip="tombol ini diberi event listener mouseleave"><button onmouseleave="this.dataset.leaveCount = (+this.dataset.leaveCount || 0) + 1;this.textContent = `anda telah meninggalkan tombol ini sebanyak ${this.dataset.leaveCount} kali!`">kunjungi dan tinggalkan saya</button></li>
+    </ul>
+    <h2>event mouseout</h2>
+    <div id="parent">
+      teks ini ada pada element parent.<br/>
+      silahkan pindahkan cursor ke anak element.
+      <p id="child-1">ini teks dari child ke 1</p>
+      <p id="child-3">ini teks dari child ke 2</p>
+      <p id="child-3">ini teks dari child ke 3</p>
+      <div id="child4">
+        ini merupakan anak ke 4<br/>
+        dan berikutnya merupakan cucu dari parent
+        <p id="cucu-1">ini cucu ke 1</p>
+        <p id="cucu-2">ini cucu ke 2</p>
+        <p id="cucu-3">ini cucu ke 3</p>
+      </div>
+    </div>
+    <textarea id="info" contenteditable="false" disabled></textarea>
+    <button onclick="document.getElementById('info').value = ''">Clear</button>
+    <script>
+      "use strict";
+      // event mouseover/out terjadi saat mouse meninggalkan/menghampiri element (termasuk parent element ke child element), event ini bubbling
+      // property event.target berisi element yg dihampiri/tinggalkan, sedangkan event.relatedTarget adalah element yg ditinggalkan/hampiri
+      // contoh fitur tooltip dengan mouse over
+      let lastTimer,
+      tooltipTarget;
+      document.addEventListener("mouseover", e => {
+        const target = e.target?.closest('[data-tooltip]');
+        if (target === tooltipTarget) return; // jika target merupakan anak dari target sebelumnya yg tidak memiliki data-tooltip, maka tidak perlu tindakan
+        // menghapus timer terakhir dan membuka tooltip yg terbuka
+        clearTimeout(lastTimer);
+        document.querySelector('.tooltip')?.remove();
+        tooltipTarget = target;
+        if (! target) return; // tidak ada anchestor terdekat yg memiliki data-tooltip
+        // munculkan tooltip
+        lastTimer = setTimeout(() => target.insertAdjacentHTML("beforebegin", `<div class="tooltip" style="position: fix; left: ${target.getBoundingClientRect().left}px; top: ${target.getBoundingClientRect().top}px;">${target.dataset.tooltip}</div>`), target.dataset.tooltipDelay ?? 2000); // menghilangkan tooltip yg tidak perlu dgn delay
+      });
+      // mouseout event
+      document.getElementById('parent').addEventListener("mouseout", e => {
+        // keduanya dapat bernilai null jika meninggalkan menuju/dari luar window
+        const target = e.target, // element yg ditinggalkan
+        relatedTarget = e.relatedTarget, // element yg dikunjungi
+        infoElem = document.getElementById('info'),
+        lines = infoElem.value ? infoElem.value.split('\n') : [];
+        lines.push(`anda telah meninggalkan ${target ? target.outerHTML.slice(0, target.outerHTML.indexOf('>') + 1) : 'sesuatu'} menuju ${relatedTarget ? relatedTarget.outerHTML.slice(0, relatedTarget.outerHTML.indexOf('>') + 1) : 'sesuatu'}`)
+        if (lines.length > 10) lines = lines.slice(1);
+        infoElem.value = lines.join('\n');
+      });
+    </script>
+  </body>
+</html>
