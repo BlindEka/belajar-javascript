@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar keyboard event, keydown dan keyup</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>custom hotkey dengan event keydown</h2>
+    <P>silahkan tekan tombol "O" dan "P" secara bersamaan</P>
+    <textarea placeholder="tekan tombol dimana saja" disabled></textarea>
+    <h2>key remapper</h2>
+    <p>silahkan daftarkan tombol untuk di map ulang</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Source key</th>
+          <th>Destination key</th>
+          <th colspan="3">Description</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="key-map-list"></tbody>
+    </table>
+    <button id="register-button" onclick="this.hidden = true; document.getElementById('register-form').hidden = false;">Register new button</button>
+    <form id="register-form" hidden>
+      <legend>Daftarkan key mapper</legend>
+      <fieldset>
+        <label><br/>
+          Source button:
+          <input type="text" placeholder="tekan tombol apapun..." name="sourceKey"/>
+        </label><br/>
+        <label><br/>
+          Destination button:
+          <input type="text" placeholder="tekan tombol apapun..." name="destinationKey"/>
+        </label><br/>
+        <label><br/>
+          Description:
+          <input type="text" placeholder="Masukan deskripsi" name="description" />
+        </label><br/>
+        <button type="submit" name="submitBtn" disabled>Register</button>
+      </fieldset>
+    </form>
+    <h3>testing</h3>
+    <textarea placeholder="tekan tombol disini" onkeydown="document.getElementById('result-area').value += `${event.type}: code=${event.code} key=${event.key} repeated=${event.repeat}${event.remappedFrom ? ` di map ulang dari tombol code=${event.remappedFrom}` : ''}\n`"></textarea>
+    <h4>results:</h4>
+    <textarea contenteditable="false" disabled id="result-area"></textarea>
+    <button onclick="document.getElementById('result-area').value = ''">Clear</button>
+    <h2>tekan tombol</h2>
+    <input placeholder="tekan tombol apapun disini..." id="input1" />
+    <script>
+      "use strict";
+      // membuat key remapper
+      const keyMapRegistry = [];
+      // mendapatkan source/destination key dengan listener keydown
+      document.getElementById('register-form').addEventListener("keydown", e => {
+        const target = e.target.closest('input');
+        if (! target && e.key == 'Escape') { // e.key bernilai karakter yg ditekan, jika modifier key nilainya akan sama dgn namanya
+          e.currentTarget.hidden = true;
+          document.getElementById('register-btn').hidden = false;
+          return;
+        }
+        if (! target || target.getAttribute('name') == 'description') return;
+        target.value = e.code;
+        e.currentTarget.submitBtn.disabled = ! (e.currentTarget.sourceKey.value && e.currentTarget.destinationKey.value);
+        e.preventDefault(); // mencegah karakter ditulis ke text field
+      });
+      // tambahkan ke registry saat submit
+      document.getElementById('register-form').addEventListener("submit", e => {
+        const sourceKey = e.currentTarget.sourceKey.value,
+        destinationKey = e.currentTarget.destinationKey.value,
+        description = e.currentTarget.description.value || '-';
+        if (! sourceKey || ! destinationKey) return;
+        keyMapRegistry.push({sourceKey, destinationKey, description});
+        // tambahkan ke tabel
+        document.getElementById('key-map-list').insertAdjacentHTML("beforeend", `<tr><td>${sourceKey}</td><td>${destinationKey}</td><td colspan="3">${description}</td><td><button name="del-btn">hapus</button></td></tr>`);
+        document.getElementById('register-button').hidden = false;
+        e.currentTarget.hidden = true;
+        e.preventDefault(); // mencegah reload halaman
+      });
+      // listener untuk action button pada tabel
+      document.getElementById('key-map-list').addEventListener("click", e => {
+        const target = e.target.closest('button');
+        if (! target) return;
+        const tr = target.closest('tr');
+        if (target.getAttribute('name') == 'del-btn') {
+          keyMapRegistry.splice(tr.sectionRowIndex, 1);
+          tr.remove();
+        }
+      });
+      document.getElementById('register-form').addEventListener("keyup", e => e.target.getAttribute('name') != 'description' && e.preventDefault());
+      document.addEventListener("keydown", e => {
+        const map = keyMapRegistry.find(map => map.sourceKey == e.code);
+        if (! map) return; // tidak ada mapper
+        e.stopPropagation(); // menghentikan event asli
+        const event = new KeyboardEvent("keydown", {
+          code: map.destinationKey,
+          key: null,
+        });
+        event.remappedFrom = e.code;
+        e.target.dispatchEvent(event);
+      }, true); // menghentikan event pada fase capturing
+      // membuat custom hotkey
+      const hotkeyActions = {};
+      let runAction = wait(function(...keys) {
+        const actionKey = keys.sort().join();
+        if (actionKey in hotkeyActions) hotkeyActions[actionKey]();
+      }, 50); // tombol keyboard dianggap ditekan bersama dalam rentang 50ms
+      document.addEventListener("keydown", e => runAction(e.code)); // event.code berisi tombol yg ditekan sesuai pada letak keyboard, bukan karakternya
+      function runOnAction(handler, ...keys) {
+        if (! keys.length) return; // tidak ada tombol pemicu
+        hotkeyActions[keys.sort().join()] = handler;
+      }
+      // tambahkan hotkey
+      runOnAction(() => alert('kamu telah menekan tombol "O" dan "P" secara bersamaan!'), ['KeyO', 'KeyP']);
+      // 
+      function wait(fx, ms) {
+        let isWaiting = false,
+        savedArgs = [];
+        return function(...args) {
+          savedArgs.push(...args);
+          if (isWaiting) return;
+          isWaiting = true;
+          setTimeout(() => {
+            isWaiting = false;
+            fx.apply(this, savedArgs.splice(0));
+          }, ms);
+        };
+      }
+      // event.repeat (bernilai true jika merupakan event yg dihasilkan dari tombol yg ditahan)
+      document.getElementById("input1").addEventListener("keydown", e => e.target.value = e.repeat ? `anda menahan tombol ${e.code.replace(/Key|Digit/, ' ')}${e.ctrlKey || e.altKey || e.shiftKey ? ' bersama ' : ''}${e.ctrlKey ? 'ctrl, ' : ''}${e.altKey ? 'alt, ' : ''}${e.shiftKey ? 'shift' : ''}` : `anda menekan tombol ${e.code.replace(/Key|Digit/, ' ')}${e.ctrlKey || e.altKey || e.shiftKey ? ' bersama ' : ''}${e.ctrlKey ? 'ctrl, ' : ''}${e.altKey ? 'alt, ' : ''}${e.shiftKey ? 'shift' : ''}`);
+      document.getElementById("input1").addEventListener("keyup", e => e.target.value = `anda melepas tombol ${e.code.replace(/Key|Digit/, ' ')}${e.ctrlKey || e.altKey || e.shiftKey ? ' bersama ' : ''}${e.ctrlKey ? 'ctrl, ' : ''}${e.altKey ? 'alt, ' : ''}${e.shiftKey ? 'shift' : ''}`);
+    </script>
+  </body>
+</html>
