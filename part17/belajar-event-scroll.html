@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar event scroll</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      p {
+        margin: 300px;
+        line-height: 3em;
+      }
+      img {margin: 200px;}
+    </style>
+  </head>
+  <body>
+    <h1>endless html</h1>
+    <p>silahkan scroll ke bawah terus menerus dan halaman akan selalu diperbarui</p>
+    <main>
+      <p id="pExample">
+        ini merupakan contoh teks paragraf.<br/>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br />
+        Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.<br />
+        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.<br />
+        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.<br />
+        Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+      </p>
+      <p>
+        ini contoh konten<br/>
+        disini akan diisi konten html<br/>
+        apapun harusnya berada disini<br/>
+      </p>
+      <div id="imgExample">
+        <p>gambar berikut seharusnya hanya dimuat jika sudah pada tampilan layar</p>
+        <img src="placeholder.svg" data-src="./gambar1.jpg" /><br/>
+        <img src="placeholder.svg" data-src="./gambar2.jpg" /><br/>
+        <img src="placeholder.svg" data-src="./gambar3.jpg" />
+      </div>
+    </main>
+    <script>
+      "use strict";
+      // scroll event terpicu saat halaman di scroll
+      let counter = 0;
+      document.addEventListener("scroll", e => {
+        let scrollY = window.scrollY,
+        maxScroll = document.documentElement.scrollHeight;
+        if (maxScroll - scrollY > 2000) return; // masih belum waktunya untuk update halaman
+        const main = document.querySelector('main'),
+        textExample = document.getElementById('pExample').textContent,
+        imgExample = document.getElementById('imgExample').innerHTML;
+        main.insertAdjacentHTML("beforeend", `
+        <h3>konten baru ke ${++ counter}</h3>
+        <p>ini merupakan contoh ke ${counter} konten yg dimuat sebelum scroll mencapai akhir halaman.<br/>
+        ${textExample.slice(textExample.indexOf('\n') + 1).replace('\n', '<br />')}
+        <div><h3>contoh gambar yg dimuat saat terlihat ke ${counter}</h3>${imgExample}</div>
+        `);
+      });
+      function isVisible(elem=document.createElement('div')) {
+        const windowHeight = document.documentElement.clientHeight,
+        coords = elem.getBoundingClientRect(),
+        isTopVisible = coords.top > 0 && coords.top < windowHeight,
+        isBottomVisible = coords.bottom < windowHeight && coords.bottom > 0;
+        return isTopVisible || isBottomVisible;
+      }
+      function loadVisibleImg() {
+        let visibleImages = Array.from(document.querySelectorAll('img[data-src]')).filter(img => isVisible(img));
+        visibleImages.forEach(img => {
+          img.src = img.dataset.src;
+          img.removeAttribute('data-src');
+        });
+      }
+      // muat gambar yg terlihat saat halaman telah dimuat
+      document.onload = loadVisibleImg;
+      // muat gambar yg terlihat saat di scroll
+      document.addEventListener("scroll", loadVisibleImg);
+    </script>
+  </body>
+</html>
