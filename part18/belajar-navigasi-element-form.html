@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar navigasi element form</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Daftar akun</h1>
+    </header>
+    <main>
+      <p>
+        Silahkan isi formulir berikut untuk mendaftarkan akun baru anda dan mendapatkan akses ke layanan kami.
+      </p>
+      <form name="registration">
+        <fieldset name="user">
+          <legend>Masukan data diri anda</legend>
+          <h5>Nama lengkap</h5>
+          <input type="text" name="fullname" placeholder="Masukan nama lengkap anda" required value="Andi Setiawan" />
+          <h5>Email:</h5>
+          <input type="email" name="email" placeholder="Masukan email anda" required />
+          <h5>Password</h5>
+          <input type="password" name="password" placeholder="Masukan password" required />
+          <h5>Konfirmasikan ulang Password</h5>
+          <input type="password" name="confirmPassword" placeholder="Konfirmasikan ulang password" required />
+          <br />
+          <label>
+            Tampilkan password
+            <input type="checkbox" name="showPassword" />
+          </label>
+        </fieldset>
+        <fieldset name="ageCategories">
+          <legend>Kategori umur</legend>
+          <label>
+            Remaja (< 18)
+            <input type="radio" name="age" value="teen" />
+          </label>
+          <br />
+          <label>
+            Dewasa ( >= 18 )
+            <input type="radio" name="age" value="mature" />
+          </label>
+        </fieldset>
+        <fieldset name="subscription">
+          <legend>Pilih tier langganan</legend>
+          <select name="subscriptionType">
+            <option value="free" selected>Free tier</option>
+            <option value="premium">Premium tier</option>
+          </select>
+        </fieldset>
+        <fieldset name="additional">
+          <label>
+            Dengan ini saya menyetujui semua ketentuan layanan dan bertanggung jawab atas penggunaan data diri saya oleh layanan ini.
+            <input type="checkbox" name="agree" required />
+          </label>
+          <br/>
+          <label>
+            Dapatkan informasi lainnya seputar layanan kami melalui email anda.
+            <input type="checkbox" name="sendMeEmail" checked/>
+          </label>
+        </fieldset>
+        <button type="submit" name="submitBtn">Daftar</button>
+      </form>
+    </main>
+    <script>
+      "use strict";
+      // semua form pada halaman html tersedia pada property document.forms[index/name]
+      const form = document.forms.registration; // mendapatkan form dengan name="registration"
+      // semua element pada form tersedia pada property form.elements dan dapat diakses dengan namanya
+      let additionalInfo = form.elements.additional;
+      console.log(`user menyetujui persyaratan layanan: ${additionalInfo.elements.agree.checked}, user akan mendapatkan email: ${additionalInfo.elements.sendMeEmail.checked}`);
+      // juga bisa diakses langsung pada form.name
+      console.log(`nama lengkap: ${form.fullname.value}`); // Andi setiawan
+      // jika element dengan name yg sama lebih dari satu maka mengembalikan koleksi element
+      let ageCategory = form.age;
+      console.log(ageCategory.length); //2
+      // setiap element memiliki referensi kembali ke element form induknya
+      console.log(form === ageCategory[0].form);
+      // form.name membolehkan nama sebelum diganti sedangkan form.elements tidak
+      let submitBtn = form.submitBtn;
+      submitBtn.name = 'submitButton'; // mengubah nama
+      console.log(form.submitBtn === submitBtn); // true (nama lama masih bekerja)
+      console.log(form.elements.submitBtn === submitBtn); // false (tidak bekerja disini)
+      console.log(form.elements.submitButton === submitBtn); // true
+      let select = form.subscriptionType;
+      [...select.options].forEach(option => console.log(`option => ${option.text} with index=${option.index} and value=${option.value} ${option.selected ? 'is selected': 'is not selected'}`)); // property options berisi option yg ada pada element select
+      console.log('nilai option yg dipilih saat ini:', select.value);
+      select.selectedIndex = 1; // mengubah pilihan menjadi yg kedua
+      console.log('nilai option yg dipilih saat ini:', select.value); // premium
+      // membuat opsi tambahan dengan new Option(text, value, default, selected)
+      let newOption = new Option('Platinum', 'platinum', true, true); // membuat opsi yg memiliki attribut html dan property selected=true
+      select.append(newOption);
+      console.log('nilai option yg dipilih saat ini:', select.value); // platinum
+    </script>
+  </body>
+</html>
