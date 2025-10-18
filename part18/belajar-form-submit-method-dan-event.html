@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar form submit method dan event</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .modal-cover {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9000;
+        background-color: gray;
+        opacity: 0.3;
+      }
+      .modal-prompt {
+        position: fixed;
+        top: 50%;
+        z-index: 10000;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>List makanan</h2>
+    <p>berikut adalah sebuah list makanan</p>
+    <ul id="list-makanan">
+      <li>Ayam</li>
+      <li>tempe</li>
+      <li>Tahu</li>
+    </ul>
+    <button id="add-btn">tambah makanan</button>
+    <h2>search form</h2>
+    <form action="https://www.google.com/search" method="get" onsubmit="alert('alert ini hanya akan berjalan melalui tombol enter pada input'); return false">
+      <fieldset>
+        <legend>cari sesuatu di google search</legend>
+        <input required type="text" name="q" placeholder="Masukan query yg ingin dicari..." /><br/>
+        <button type="button" id="searchBtn">Cari</button>
+      </fieldset>
+    </form>
+    <script>
+      "use strict";
+      function addItem(list, value) {
+        let li = document.createElement('li');
+        li.textContent = value;
+        list.append(li);
+      }
+      function showPrompt(title='Prompt', message='fill the input area below!', action=function(value){}) {
+        const form = document.createElement('form');
+        form.innerHTML = `
+        <fieldset>
+          <legend>${title}</legend>
+          <p>${message}</p>
+          <input type="text" name="value" onblur="this.form.okBtn.focus()" /><br/>
+          <button type="submit" name="okBtn" onblur="this.form.value.focus()">Ok</button>
+        </fieldset>
+        `;
+        form.className = 'modal-prompt';
+        // cover modal
+        let modalCover = document.createElement('div');
+        modalCover.className = 'modal-cover';
+        // event submit terjadi saat menekan tombol dengan type="submit" / menekan enter pada input
+        form.onkeyup = form.onsubmit = e => {
+          if (e.type == 'keyup' && e.code != 'Escape') return;
+          form.remove();
+          modalCover.remove();
+          e.preventDefault();
+          action(e.type == 'keyup' ? null : form.value.value);
+        };
+        document.body.append(modalCover, form);
+        form.value.focus();
+      }
+      //
+      document.getElementById('add-btn').onclick = e => showPrompt('Tambah makanan', 'Silahkan masukan nama makanan dibawah ini!', value => value && addItem(document.getElementById('list-makanan'), value));
+      // form.submit() (melakukan submit pada form, event submit tidak dibuat dan tidak ada validasi)
+      document.getElementById('searchBtn').onclick = e => {
+        if (! e.target.form.q.value) return; // validasi manual
+        e.target.form.submit();
+      }
+    </script>
+  </body>
+</html>
