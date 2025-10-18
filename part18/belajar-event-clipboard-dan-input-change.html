@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar event clipboard, input dan change</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Deposit calculator</h2>
+    <form name="depositCalculator">
+      <fieldset name="inputFields">
+        <legend>Fill the required fields</legend>
+        <h6>Initial:</h6>
+        <input type="text" name="initial" placeholder="Initial money sum"/>
+        <br/>
+        <h6>interest:</h6>
+        <input type="text" name="interest" placeholder="interest (0 - 1)"/>
+        <br/>
+        <h6>Years:</h6>
+        <input type="text" name="years" placeholder="years to wait..."/>
+      </fieldset>
+      <br/>
+      <fieldset>
+        <label>
+          result:
+          <input type="text" name="result" readonly placeholder="Result show up here"/>
+        </label>
+      </fieldset>
+    </form>
+    <h2>clipboard event (copy, cut, paste</h2>
+    <p>silahkan copy, cut atau paste pada input dibawah </p>
+    <textarea id="textInput" placeholder="copy, cut, paste disini"></textarea>
+    <h2>event change</h2>
+    <p>silahkan ubah nilai berikut</p>
+    <select id="musicGenres" data-target="#selectedGenre">
+      <option selected value="classic">classic</option>
+      <option value="jazz">Jazz</option>
+      <option value="rock">rock</option>
+    </select>
+    <p>Anda memilih genre musik: <span id="selectedGenre">classic</span></p>
+    <fieldset>
+      <legend>Nama lengkap anda</legend>
+      Nama Depan:<br/>
+      <input type="text" placeholder="Nama depan" data-target="#firstName"/><br/>
+      Nama belakang:<br/>
+      <input type="text" placeholder="Nama belakang" data-target="#lastName"/><br/>
+      <p>Nama lengkap anda adalah: <span id="firstName"></span> <span id="lastName"></span></p>
+    </fieldset>
+    <script>
+      "use strict";
+      function debounce(f, ms) {
+        let timerId;
+        return function(...args) {
+          clearTimeout(timerId);
+          timerId = setTimeout(f.bind(this, ...args), ms);
+          return f.apply(this, args);
+        };
+      }
+      // event input terpicu ketika nilai dari input berubah
+      let showResult = debounce(e => {
+        const depositCalculator = document.forms.depositCalculator;
+        let initial = depositCalculator.initial.value,
+        interest = depositCalculator.interest.value,
+        years = depositCalculator.years.value;
+        if ([initial, interest, years].some(value => ! value)) return depositCalculator.result.value = ''; // beberapa field rumpang
+        let result = Math.round(initial * (1 + interest * years));
+        depositCalculator.result.value = (! isFinite(result)) ? 'input data has invalid value' : result;
+      }, 1000); // beri jeda 1 detik sebelum kalkulasi
+      document.forms.depositCalculator.inputFields.addEventListener("input", showResult);
+      // event cut, copy paste
+      let input = document.getElementById('textInput');
+      input.addEventListener("copy", e => {
+        e.clipboardData.setData("text/plain", 'Maaf, penyalinan konten teks tidak diperbolehkan.'); // cegah penyalinan konten
+        e.preventDefault();
+      });
+      input.oncut = e => !!alert('tidak boleh memotong teks ini.');
+      input.addEventListener("paste", e => {
+        e.clipboardData.setData('text/plain', e.clipboardData.getData("text/plain") ? `Teks berikut telah anda tempel:\n${e.clipboardData.getData('text/plain')}` : 'Anda tidak menyalin apapun');
+      });
+      // event change terpicu saat sebuah input element selesai diubah nilainya (jika input text maka harus blur dahulu baru dipicu)
+      document.addEventListener("change", e => {
+        if (! e.target.dataset.target) return;
+        let target = document.querySelector(e.target.dataset.target);
+        if (target) target.innerHTML = e.target.value;
+      });
+    </script>
+  </body>
+</html>
