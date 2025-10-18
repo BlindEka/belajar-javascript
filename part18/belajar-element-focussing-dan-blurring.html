@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar element focussing dan blurring</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      .invalid-value {
+        outline: 2px solid red;
+        color: red;
+      }
+      #invalid-info {
+        background-color: magenta;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>login</h2>
+    <form name="login">
+      <fieldset>
+        <label>
+          Username:
+          <input name="username" placeholder="Username" />
+          <br/>
+        </label>
+        <p id="orSpan">Atau</p>
+        <label>
+          Email:
+          <input type="email" name="email" placeholder="Email" />
+          <br/>
+        </label>
+        <label>
+          Password:
+          <input type="password" name="password" />
+        </label>
+        <br/>
+        <label>
+          Show password
+          <input type="checkbox" name="showPassword" onclick="this.checked ? this.form.password.type = 'text' : this.form.password.type = 'password';"/>
+        </label><br/>
+        <button type="submit" name="loginBtn">Login</button>
+      </fieldset>
+    </form>
+    <h2>editable element</h2>
+    <p>ctrl / shift + click pada element di bawah ini untuk mengedit kontennya</p>
+    <div data-editable>Coba ctrl / shift + click saya</div>
+    <h2 id="heading1">tab index</h2>
+    <p tabindex="-1" id="p1">element ini memiliki tab index -1, yg membuatnya focusable hanya secara programatik</p>
+    <p tabindex="1">sedangkan ini memiliki tabindex 1 akan diproses terlebih dahulu sesuai urutan saat tombol tab ditekan</p>
+    <p tabindex="0">yg ini memiliki tabindex 0 dan membuatnya focusable dan urutannya akan sesuai dengan apa yg tertulis pada html namun hanya akan diproses setelah tabindex > 0 dan interaktif element telah dilewati semuanya </p>
+      <p tabindex="0">ini jjuga tabindex nya 0</p>
+      <p tabindex="2">yg ini tabindex nya 2</p>
+      <p tabindex="2">ini juga 2</p>
+      <button onclick="document.getElementById('heading1').focus()">tombol ini tidak akan bekerja</button><br/>
+      <button onclick="document.getElementById('p1').focus()">tombol ini akan bekerja</button><br/>
+    <script>
+      "use strict";
+      // elem.focus()/blur() (memindahkan fokus ke elem/ mengeluarkan dari fokus elem)
+      const form = document.forms.login;
+      document.onload = e => form.username.focus(); // fokus pada input username saat dokumen di muat penuh
+      // event focus/blur terpicu saat element focus / blur, tidak bubbling
+      form.email.onfocus = form.username.onfocus = e => {
+        document.getElementById('orSpan').hidden = true;
+        let elem = (e.target === form.username) ? form.email : form.username;
+        elem.closest('label').hidden = true;
+      };
+      form.email.onblur = form.username.onblur = e => {
+        if (! e.target.value) {
+          document.getElementById('orSpan').hidden = false;
+          form.username.closest('label').hidden = false;
+          form.email.closest('label').hidden = false;
+          return;
+        }
+        let isInvalid = (e.target === form.username) ? e.target.value.trim().includes(' ') : e.target.value.trim().split('@').length != 2;
+        if (isInvalid) e.target.classList.add('invalid-value')
+        else e.target.classList.remove('invalid-value');
+      };
+      // event focusin/focusout (sama dengan focus/blur namun bisa bubbling)
+      form.addEventListener("focusout", e => {
+        if (! (e.target === form.username || e.target === form.email) || ! e.target.value || ! e.target.classList.contains('invalid-value')) return document.getElementById('invalid-info')?.remove();
+        if (! document.getElementById('invalid-info')) e.target.parentElement.insertAdjacentHTML("afterend", `<p id="invalid-info">${e.target === form.username ? 'Username' : 'Email'} tidak valid</p>`);
+        e.target.focus(); // paksa isi terlebih dahulu field ini
+      });
+      // listener untuk editable element
+      document.addEventListener("click", e => {
+        if (! (e.ctrlKey || e.metaKey || e.shiftKey)) return; // click harus dengan tombol ctrl/shift jika ingin mengedit
+        const target = e.target.closest('[data-editable]');
+        if (! target || target.querySelector('textarea[data-editable-editor]')) return; // sedang dalam mode edit
+        target.querySelectorAll('textarea').forEach(textarea => textarea.innerHTML = textarea.value); // menyimpan value pada textarea innerHTML agar tidak hilang
+        target.innerHTML = `<textarea data-editable-editor>${target.innerHTML}</textarea>`;
+      });
+      // menekan ctrl + enter atau keluar dari fokus mengembalikan element dari mode editable
+      document.addEventListener("focusout", e => {
+        if (! e.target.matches('[data-editable] > textarea[data-editable-editor]')) return; // bukan textarea untuk editor element
+        e.target.parentElement.innerHTML = e.target.value;
+      });
+      document.addEventListener("keydown", e => {
+        if (! (e.code == 'Enter' && e.ctrlKey || e.metaKey) || ! e.target.matches('[data-editable] > textarea[data-editable-editor]')) return;
+        e.target.blur(); // menggunakan blur untuk memicu listener focusout
+      });
+    </script>
+  </body>
+</html>
