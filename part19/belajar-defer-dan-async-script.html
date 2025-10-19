@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar atribut defer dan async pada tag script</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>list makanan</h1>
+    <p>berikut merupakan sebuah list makanan</p>
+    <script defer src="./script.js" onload="console.log('script.js telah dimuat')"></script>
+    <!-- script dengan atribut defer tetap dijalankan sesuai urutan walaupun di muat secara paralel dengan script defer lainnya -->
+    <script defer src="./hello-world.js" onload="console.log('hello-world.js telah dimuat')"></script>
+    <ul id="list-makanan">
+      <li>Ayam goreng</li>
+      <li>Tempe orek</li>
+      <li>Tahu bulat</li>
+      <li>Siomay</li>
+    </ul>
+    <!-- script dengan atribut async dimuat secara independent, tidak menunnggu atau ditunggu oleh apapun, bisa berjalan sebelum atau sesudah event DOMContentLoaded-->
+    <script async src="./long.js" onload="console.log('long.js telah dimuat')"></script>
+    <!-- small.js bisa saja dijalankan lebih dahulu walaupun secara urutan long.js terlebih dahulu-->
+    <script async src="./small.js" onload="console.log('small.js telah dimuat')"></script>
+    <script>
+      "use strict";
+      // sedangkan script ini akan segera dijalankan
+      let item1 = document.getElementById('item1');
+      console.log(`item1 = ${item1}`); // null
+      document.addEventListener("DOMContentLoaded", e => console.log('html telah selesai dimuat!'));
+      // load script secara dinamis
+      function loadScript(src, asynchronous, defer) {
+        const script = document.createElement('script'); // secara default async
+        Object.assign(script, {src, defer, async: asynchronous});
+        const promise = new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+        document.body.append(script);
+        return promise;
+      }
+      loadScript('./any.js')
+      .then(r => console.log('script any.js telah dimuat'))
+      .catch(e => console.log('any.js gagal dimuat'));
+    </script>
+  </body>
+</html>
