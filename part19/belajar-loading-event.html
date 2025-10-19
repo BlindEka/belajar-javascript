@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>belajar document dan resource loading event</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>sebuah judul</h2>
+    <p>
+      sebuah konten paragraf disini
+    </p>
+    <!-- style berikut tidak akan ditunggu hingga dimuat oleh event DOMContentLoaded -->
+    <link href="style.css" type="text/css" rel="stylesheet" onload="console.log('style.css berhasil dimuat')" />
+    <!-- sedangkan script akan ditunggu oleh event DOMContentLoaded -->
+    <script onload="console.log('hello-world.js telah dimuat')" src="./hello-world.js"></script>
+    <script>
+      console.log('saya berjalan setelah hello-world.js telah berhasil dimuat')
+    </script>
+    <p>sebuah konten pargraf</p>
+    <script>
+      "use strict";
+      // event DOMContentLoaded terjadi saat halaman telah selesai dimuat , tidak termasuk external resources lainnya (img, style, dll)
+      document.addEventListener("DOMContentLoaded", e => console.log('dokumen html telah selesai dimuat'));
+      // sedangkan event window.onload terjadi saat halaman telah sepenuhnya dimuat termasuk dengan external resources lainnya
+      window.onload = e => console.log('halaman beserta external resources nya telah sepenuhnya dimuat');
+      // event window.onunload terjadi setelah user meninggalkan halaman
+      window.onunload = e => {
+        // kirim data statistik yg telah dikumpulkan ke server
+        console.log('mengirim data statistik...');
+        let data = {clickCount: 111, leaveTime: Date.now()};
+        // navigator.sendBeacon(url, data) mengirim data dilatar belakang bahkan setelah halaman ditutup (dibatasi hingga 64kb)
+        navigator.sendBeacon('https://statisticgather.com/store', JSON.stringify(data)); // dikirim dgn method post
+      };
+      // sedangkan window.onbeforeunload terjadi sebelum user meninggalkan halaman
+      window.onbeforeunload = e => false; // mencegah tindakan default akan mengkonfirmasi sebelum user meninggalkan halaman
+      // document.readyState (bernilai "loading" jika dokumen masih dimuat, "interactive" jika dokumen sudah selesai dimuat dan complete jika semua external resources telah dimuat)
+      setTimeout(() => {
+        if (document.readyState == "complete") console.log(`document.readyState = complete`);
+        else window.addEventListener("load", e => console.log('document.readyState = complete'));
+      }, 4000);
+      // event readystatechange terjadi saat nilai dari readyState berubah
+      console.log(`current readyState: ${document.readyState}`);
+      document.onreadystatechange = e => console.log(`current readyState: ${document.readyState}`);
+    </script>
+  </body>
+</html>

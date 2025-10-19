@@ -1,0 +1,7 @@
+.tooltip {
+  position: fixed;
+  z-index: 10000;
+  background-color: white;
+  border: 0.5px solid black;
+  box-shadow: -1px 1px 0.5;
+}
