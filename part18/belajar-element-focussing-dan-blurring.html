@@ -62,7 +62,7 @@
       "use strict";
       // elem.focus()/blur() (memindahkan fokus ke elem/ mengeluarkan dari fokus elem)
       const form = document.forms.login;
-      document.onload = e => form.username.focus(); // fokus pada input username saat dokumen di muat penuh
+      document.addEventListener("DOMContentLoaded", e => form.username.focus()); // fokus pada input username saat dokumen di muat penuh
       // event focus/blur terpicu saat element focus / blur, tidak bubbling
       form.email.onfocus = form.username.onfocus = e => {
         document.getElementById('orSpan').hidden = true;

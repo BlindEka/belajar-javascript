@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>belajar event onload dan onerror</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>list hewan</h2>
+    <ul>
+      <li>kucing</li>
+      <li>domba</li>
+      <li>sapi</li>
+    </ul>
+    <script>
+      "use strict";
+      // event onload dan onerror terjadi saat resources berhasil/gagal dimuat
+      function loadScript(src, asynchronous, defer) {
+        const script = document.createElement('script'); // secara default async
+        Object.assign(script, {src, defer, async: asynchronous});
+        const promise = new Promise((resolve, reject) => {
+          script.onload = resolve; // resolve ketika script berhasil dimuat (diunduh, dijalankan)
+          script.onerror = reject; // reject saat gagal memuat script, terlepas dari error dalam kode script
+        });
+        document.body.append(script);
+        return promise;
+      }
+      // 
+      loadScript('./math.js')
+      .then(r => console.log(`hasil 4 *3 * 4 = ${mul(4,3,4)}`)); // memanggil fungsi dari script tersebut setelah selesai dimuat
+      // menggunakan global error handler untuk menangkap error pada script
+      window.onerror = (message, url, line, col, error) => console.log(`Error pada script terjadi:\n${message}\n${url}, ${line}:${col}\n${error?.stack ?? 'no stack trace'}`);
+      loadScript('./error.js')
+      .then(r => console.log('error.js berhasil dimuat'))
+      .catch(e => console.log('pesan ini tidak akan pernah muncul'));
+      // fungsi untuk preloading images
+      function preloadImages(sources=[], onComplete) {
+        return Promise.all(sources.map(src => {
+          const img = document.createElement('img');
+          img.src = src;
+          return new Promise(resolve => img.onload = img.onerror = resolve);
+        }))
+        .then(onComplete);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+// hasilkan error
+noSuchFunction();
